@@ -8,7 +8,8 @@ interface Props {
   onSave: (updated: Card) => void;
   onDelete: () => void;
   boards?: Board[];
-  onSendToBoard?: (itemText: string, boardId: string, columnId: string) => void;
+  onSendToBoard?: (cardTitle: string, itemText: string, boardId: string, columnId: string) => void;
+  currentUserId?: string;
 }
 
 const PRIORITIES: { value: Priority; label: string; color: string; bg: string; glow: string }[] = [
@@ -39,7 +40,7 @@ const COLORS = [
   { hex: '#94a3b8', label: 'Cinza' },
 ];
 
-const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard }) => {
+const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard, currentUserId }) => {
   const [draft, setDraft] = useState<Card>({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
   const [newCheckItem, setNewCheckItem] = useState('');
   const [newComment, setNewComment] = useState('');
@@ -358,6 +359,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               {new Date(card.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
             <div className="flex gap-2">
+              {(!card.createdBy || card.createdBy === currentUserId) && (
               <button
                 onClick={() => { onDelete(); onClose(); }}
                 className="text-sm px-3 py-1.5 rounded-lg transition-all"
@@ -367,6 +369,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               >
                 Excluir
               </button>
+              )}
               <button
                 onClick={() => { onSave(draft); onClose(); }}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all"
@@ -447,7 +450,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
             <button
               onClick={() => {
                 if (sendBoardId && sendColId) {
-                  onSendToBoard(sendItem.text, sendBoardId, sendColId);
+                  onSendToBoard(card.title, sendItem.text, sendBoardId, sendColId);
                   setSendItem(null);
                 }
               }}

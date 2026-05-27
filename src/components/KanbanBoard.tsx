@@ -28,9 +28,10 @@ interface Props {
   onBack?: () => void;
   onSelectBoard?: (id: string) => void;
   onBoardChange?: (board: Board) => void | Promise<void>;
+  currentUserId?: string;
 }
 
-const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBoard, onBoardChange }) => {
+const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBoard, onBoardChange, currentUserId }) => {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [board, setBoard] = useState<Board>(initialBoard);
   const [activeCard, setActiveCard] = useState<{ card: Card; columnId: string } | null>(null);
@@ -101,6 +102,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       checklist: [],
       comments: [],
       createdAt: new Date().toISOString(),
+      createdBy: currentUserId,
       priority: '',
       dueDate: '',
       alertMinutes: 30,
@@ -235,17 +237,18 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
         ?.cards.find(card => card.id === modalState.cardId)
     : null;
 
-  const handleSendToBoard = useCallback(async (itemText: string, targetBoardId: string, targetColId: string) => {
+  const handleSendToBoard = useCallback(async (cardTitle: string, itemText: string, targetBoardId: string, targetColId: string) => {
     const targetBoard = boards?.find(b => b.id === targetBoardId);
     if (!targetBoard) return;
     const newCard: Card = {
       id: uuidv4(),
-      title: itemText,
-      description: '',
+      title: cardTitle,
+      description: itemText,
       color: '',
       checklist: [],
       comments: [],
       createdAt: new Date().toISOString(),
+      createdBy: currentUserId,
       priority: '',
       dueDate: '',
       alertMinutes: 30,
@@ -407,6 +410,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
                   column={col}
                   index={colIndex}
                   onAddCard={addCard}
+                  currentUserId={currentUserId}
                   onDeleteCard={deleteCard}
                   onOpenCard={(cardId, columnId) => setModalState({ cardId, columnId })}
                   onRenameColumn={renameColumn}
@@ -500,6 +504,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
           onDelete={() => deleteCard(modalState.columnId, modalState.cardId)}
           boards={boards}
           onSendToBoard={handleSendToBoard}
+          currentUserId={currentUserId}
         />
       )}
     </div>

@@ -58,6 +58,7 @@ router.get('/', async (req, res) => {
             dueDate:      card.due_date || '',
             alertMinutes: card.alert_minutes || 30,
             createdAt:    card.created_at,
+            createdBy:    card.created_by || null,
             checklist:    items.map(i => ({ id: i.id, text: i.text, done: i.done === 1 })),
             comments:     comments.map(c => ({ id: c.id, text: c.text, createdAt: c.created_at })),
           });
@@ -121,13 +122,14 @@ router.put('/:id', async (req, res) => {
         const card = col.cards[cardI];
         await conn.execute(
           `INSERT INTO cards
-            (id, column_id, title, description, color, priority, due_date, alert_minutes, position, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, column_id, title, description, color, priority, due_date, alert_minutes, position, created_at, created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             card.id, col.id, card.title,
             card.description || '', card.color || '',
             card.priority || '', card.dueDate || '',
             card.alertMinutes || 30, cardI, card.createdAt,
+            card.createdBy || null,
           ]
         );
 

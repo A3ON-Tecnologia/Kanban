@@ -20,6 +20,7 @@ export interface Card {
   checklist: ChecklistItem[];
   comments: Comment[];
   createdAt: string;
+  createdBy?: string;
   priority: Priority;
   dueDate: string;       // datetime-local string or ''
   alertMinutes: number;  // minutes before due date

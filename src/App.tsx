@@ -113,6 +113,7 @@ function App() {
         onBack={() => setSelectedId(null)}
         onSelectBoard={setSelectedId}
         onBoardChange={handleBoardChange}
+        currentUserId={user?.id}
       />
     )
   }

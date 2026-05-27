@@ -10,6 +10,7 @@ interface Props {
   accentColor?: string;
   onOpen: (cardId: string, columnId: string) => void;
   onDelete: (cardId: string, columnId: string) => void;
+  currentUserId?: string;
 }
 
 const COLOR_BAR: Record<string, string> = {
@@ -41,7 +42,7 @@ function formatDueDate(dueDate: string): { text: string; overdue: boolean } {
   return { text: `${day}/${month} ${hour}:${min}`, overdue };
 }
 
-const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', onOpen, onDelete }) => {
+const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', onOpen, onDelete, currentUserId }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'card', columnId },
@@ -102,7 +103,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
             {priorityDot && (
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: priorityDot, display: 'inline-block', flexShrink: 0 }} />
             )}
-            {hovered && (
+            {hovered && (!card.createdBy || card.createdBy === currentUserId) && (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmDelete(true); }}
                 className="w-5 h-5 rounded flex items-center justify-center text-xs transition-colors"

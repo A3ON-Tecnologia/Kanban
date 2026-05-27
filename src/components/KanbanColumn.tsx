@@ -16,11 +16,12 @@ interface Props {
   onRenameColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
   onRecolorColumn: (columnId: string, color: string, color2: string) => void;
+  currentUserId?: string;
 }
 
 const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#facc15', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
 
-const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard, onOpenCard, onRenameColumn, onDeleteColumn, onRecolorColumn }) => {
+const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard, onOpenCard, onRenameColumn, onDeleteColumn, onRecolorColumn, currentUserId }) => {
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [showMenu, setShowMenu] = useState(false);
@@ -184,6 +185,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
               accentColor={accent}
               onOpen={onOpenCard}
               onDelete={(cardId) => onDeleteCard(column.id, cardId)}
+              currentUserId={currentUserId}
             />
           ))}
         </SortableContext>
