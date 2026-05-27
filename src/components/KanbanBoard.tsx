@@ -34,6 +34,10 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
   const [modalState, setModalState] = useState<{ cardId: string; columnId: string } | null>(null);
   const [addingColumn, setAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
+  const [newColumnColor, setNewColumnColor] = useState('#22c55e');
+  const [newColumnColor2, setNewColumnColor2] = useState('#3b82f6');
+
+  const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -56,11 +60,20 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
     if (!title) return;
     const newBoard: Board = {
       ...board,
-      columns: [...board.columns, { id: uuidv4(), title, cards: [] }],
+      columns: [...board.columns, { id: uuidv4(), title, color: newColumnColor, color2: newColumnColor2, cards: [] }],
     };
     persist(newBoard);
     setNewColumnTitle('');
+    setNewColumnColor('#22c55e');
+    setNewColumnColor2('#3b82f6');
     setAddingColumn(false);
+  };
+
+  const recolorColumn = (columnId: string, color: string, color2: string) => {
+    persist({
+      ...board,
+      columns: board.columns.map(c => c.id === columnId ? { ...c, color, color2 } : c),
+    });
   };
 
   const renameColumn = (columnId: string, title: string) => {
@@ -300,6 +313,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
                   onOpenCard={(cardId, columnId) => setModalState({ cardId, columnId })}
                   onRenameColumn={renameColumn}
                   onDeleteColumn={deleteColumn}
+                  onRecolorColumn={recolorColumn}
                 />
               ))}
 
@@ -318,6 +332,28 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
                     className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                     style={{ background: 'transparent', border: 'none', color: '#e2e8f0' }}
                   />
+                  {/* Color swatches */}
+                  <div className="flex flex-col gap-1.5 px-1">
+                    <div className="flex items-center gap-1.5">
+                      <span style={{ fontSize: 10, color: '#7a7f8c', width: 28, flexShrink: 0 }}>Início</span>
+                      {COLUMN_ACCENT.map(c => (
+                        <button key={c} onClick={() => setNewColumnColor(c)}
+                          className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"
+                          style={{ background: c, outline: newColumnColor === c ? `2px solid ${c === '#ffffff' ? '#aaa' : c}` : 'none', outlineOffset: 2, transform: newColumnColor === c ? 'scale(1.25)' : 'scale(1)', border: c === '#ffffff' ? '1px solid rgba(255,255,255,0.3)' : 'none' }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span style={{ fontSize: 10, color: '#7a7f8c', width: 28, flexShrink: 0 }}>Fim</span>
+                      {COLUMN_ACCENT.map(c => (
+                        <button key={c} onClick={() => setNewColumnColor2(c)}
+                          className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"
+                          style={{ background: c, outline: newColumnColor2 === c ? `2px solid ${c === '#ffffff' ? '#aaa' : c}` : 'none', outlineOffset: 2, transform: newColumnColor2 === c ? 'scale(1.25)' : 'scale(1)', border: c === '#ffffff' ? '1px solid rgba(255,255,255,0.3)' : 'none' }}
+                        />
+                      ))}
+                    </div>
+                    <div className="w-full h-2 rounded-full" style={{ background: `linear-gradient(to right, ${newColumnColor}, ${newColumnColor2})` }} />
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={addColumn}

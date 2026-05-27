@@ -14,14 +14,19 @@ interface Props {
   onOpenCard: (cardId: string, columnId: string) => void;
   onRenameColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
+  onRecolorColumn: (columnId: string, color: string, color2: string) => void;
 }
 
-const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'];
+const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
 
-const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard, onOpenCard, onRenameColumn, onDeleteColumn }) => {
+const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard, onOpenCard, onRenameColumn, onDeleteColumn, onRecolorColumn }) => {
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [showMenu, setShowMenu] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  const accent = column.color || COLUMN_ACCENT[index % COLUMN_ACCENT.length];
+  const accent2 = column.color2 || accent;
 
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({
     id: column.id,
@@ -53,21 +58,37 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
         background: '#1b1e2f',
         border: '1px solid #2b2e3a',
       }}
-      className="flex-shrink-0 w-[300px] flex flex-col rounded-xl overflow-hidden"
+      className="flex-shrink-0 w-[300px] flex flex-col rounded-xl"
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-3 py-2.5 gap-2"
+        className="flex items-center justify-between px-3 py-2.5 gap-2 rounded-t-xl"
         style={{
-          background: `linear-gradient(to right, ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}25, ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}08)`,
-          borderBottom: `1px solid ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}30`,
+          background: `linear-gradient(to right, ${accent}55, ${accent2}30)`,
+          borderBottom: `1px solid ${accent}40`,
         }}
       >
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing flex-1 min-w-0 flex items-center gap-2"
-        >
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          {/* Drag handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing flex-shrink-0 flex flex-col gap-0.5 px-0.5 py-1 rounded opacity-40 hover:opacity-80 transition-opacity"
+            title="Arrastar coluna"
+          >
+            <span style={{ display: 'flex', gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', display: 'block' }} />
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', display: 'block' }} />
+            </span>
+            <span style={{ display: 'flex', gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', display: 'block' }} />
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', display: 'block' }} />
+            </span>
+            <span style={{ display: 'flex', gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', display: 'block' }} />
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', display: 'block' }} />
+            </span>
+          </div>
           <InlineEdit
             value={column.title}
             onSave={v => onRenameColumn(column.id, v)}
@@ -94,9 +115,48 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
           </button>
           {showMenu && (
             <div
-              className="absolute right-0 top-7 rounded-lg z-10 min-w-36 py-1"
-              style={{ background: '#1f2235', border: '1px solid #2b2e3a', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
+              className="absolute right-0 top-7 rounded-lg z-10 py-1"
+              style={{ background: '#1f2235', border: '1px solid #2b2e3a', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', minWidth: 160 }}
             >
+              <button
+                onClick={() => setShowColorPicker(p => !p)}
+                className="w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2"
+                style={{ color: '#e2e8f0' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <span style={{ width: 12, height: 12, borderRadius: '50%', background: accent, display: 'inline-block', flexShrink: 0 }} />
+                Mudar cor
+              </button>
+              {showColorPicker && (
+                <div className="flex flex-col gap-2 px-3 pb-2 pt-1">
+                  <div className="flex flex-col gap-1.5">
+                    <span style={{ fontSize: 10, color: '#7a7f8c' }}>Início</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {COLUMN_ACCENT.map(c => (
+                        <button key={c}
+                          onClick={() => onRecolorColumn(column.id, c, column.color2 || accent2)}
+                          className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"
+                          style={{ background: c, outline: accent === c ? `2px solid ${c === '#ffffff' ? '#aaa' : c}` : 'none', outlineOffset: 2, transform: accent === c ? 'scale(1.2)' : 'scale(1)', border: c === '#ffffff' ? '1px solid rgba(255,255,255,0.3)' : 'none' }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <span style={{ fontSize: 10, color: '#7a7f8c' }}>Fim</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {COLUMN_ACCENT.map(c => (
+                        <button key={c}
+                          onClick={() => onRecolorColumn(column.id, column.color || accent, c)}
+                          className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"
+                          style={{ background: c, outline: accent2 === c ? `2px solid ${c === '#ffffff' ? '#aaa' : c}` : 'none', outlineOffset: 2, transform: accent2 === c ? 'scale(1.2)' : 'scale(1)', border: c === '#ffffff' ? '1px solid rgba(255,255,255,0.3)' : 'none' }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="w-full h-2 rounded-full" style={{ background: `linear-gradient(to right, ${accent}, ${accent2})` }} />
+                </div>
+              )}
               <button
                 onClick={() => { onDeleteColumn(column.id); setShowMenu(false); }}
                 className="w-full text-left px-3 py-2 text-sm transition-colors"
@@ -150,7 +210,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
             <button
               onClick={handleAddCard}
               className="flex-1 text-sm py-1.5 rounded-lg font-semibold transition-colors"
-              style={{ background: COLUMN_ACCENT[index % COLUMN_ACCENT.length], color: '#0f1117' }}
+              style={{ background: accent, color: '#0f1117' }}
             >
               Adicionar
             </button>

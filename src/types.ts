@@ -28,6 +28,8 @@ export interface Card {
 export interface Column {
   id: string;
   title: string;
+  color?: string;
+  color2?: string;
   cards: Card[];
 }
 
