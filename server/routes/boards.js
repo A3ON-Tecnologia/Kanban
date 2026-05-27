@@ -1,11 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const { authMiddleware } = require('../middleware/auth');
 
-// GET /api/boards — lista todos os quadros com colunas, cartões e checklist
+router.use(authMiddleware);
+
+// GET /api/boards — lista quadros filtrados por usuário
 router.get('/', async (req, res) => {
   try {
-    const [boards] = await pool.execute('SELECT * FROM boards ORDER BY created_at');
+    let boards;
+    if (req.user.role === 'admin') {
+      [boards] = await pool.execute('SELECT * FROM boards ORDER BY created_at');
+    } else {
+      // Quadros criados pelo usuário OU que ele tem acesso
+      [boards] = await pool.execute(
+        `SELECT DISTINCT b.* FROM boards b
+         LEFT JOIN board_access ba ON ba.board_id = b.id
+         WHERE b.created_by = ? OR ba.user_id = ?
+         ORDER BY b.created_at`,
+        [req.user.id, req.user.id]
+      );
+    }
     const result = [];
 
     for (const board of boards) {
@@ -65,8 +80,8 @@ router.post('/', async (req, res) => {
   const board = req.body;
   try {
     await pool.execute(
-      'INSERT INTO boards (id, title) VALUES (?, ?)',
-      [board.id, board.title]
+      'INSERT INTO boards (id, title, created_by) VALUES (?, ?, ?)',
+      [board.id, board.title, req.user.id]
     );
     res.status(201).json({ success: true });
   } catch (err) {

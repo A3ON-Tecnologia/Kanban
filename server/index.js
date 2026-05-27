@@ -4,6 +4,8 @@ const path = require('path');
 require('dotenv').config();
 
 const boardsRouter = require('./routes/boards');
+const authRouter = require('./routes/auth');
+const usersRouter = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,6 +14,8 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // API
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
 app.use('/api/boards', boardsRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 

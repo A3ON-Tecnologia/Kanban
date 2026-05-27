@@ -2,49 +2,29 @@ import './index.css'
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { loadBoards, saveBoard, createBoard as apiCreateBoard, deleteBoard as apiDeleteBoard } from './api'
-import { loadBoards as loadLocalBoards } from './storage'
 import type { Board } from './types'
 import KanbanBoard from './components/KanbanBoard'
 import BoardList from './components/BoardList'
-
-async function migrateLocalStorageToAPI(apiBoards: Board[]): Promise<Board[]> {
-  // Only migrate if API has no cards at all
-  const totalCards = apiBoards.reduce((s, b) => s + b.columns.reduce((s2, c) => s2 + c.cards.length, 0), 0)
-  if (totalCards > 0) return apiBoards
-
-  // Check localStorage for data
-  const localBoards = loadLocalBoards()
-  const localCards = localBoards.reduce((s, b) => s + b.columns.reduce((s2, c) => s2 + c.cards.length, 0), 0)
-  if (localCards === 0) return apiBoards
-
-  // Merge: for each local board, find matching API board by title or create new
-  const result: Board[] = []
-  for (const localBoard of localBoards) {
-    const match = apiBoards.find(b => b.title === localBoard.title) ?? localBoard
-    const merged: Board = { ...match, columns: localBoard.columns }
-    await saveBoard(merged)
-    result.push(merged)
-  }
-  // Keep API boards that weren't in localStorage
-  for (const apiBoard of apiBoards) {
-    if (!result.find(b => b.id === apiBoard.id)) result.push(apiBoard)
-  }
-  return result
-}
+import LoginPage from './components/LoginPage'
+import UserManagement from './components/UserManagement'
+import { useAuth } from './context/AuthContext'
 
 function App() {
+  const { user, loading: authLoading, signOut } = useAuth()
   const [boards, setBoards] = useState<Board[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showUserMgmt, setShowUserMgmt] = useState(false)
 
   useEffect(() => {
+    if (!user) return
+    setLoading(true)
     loadBoards()
-      .then(apiBoards => migrateLocalStorageToAPI(apiBoards))
       .then(setBoards)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user])
 
   const selectedBoard = boards.find(b => b.id === selectedId) ?? null
 
@@ -72,33 +52,47 @@ function App() {
     setBoards(prev => prev.map(b => b.id === board.id ? board : b))
   }
 
+  // Aguardando verificação do token
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0f16' }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: 'rgba(7,217,99,0.15)', border: '1px solid rgba(7,217,99,0.25)' }}>
+            <span className="font-bold" style={{ color: '#07d963' }}>K</span>
+          </div>
+          <p className="text-sm" style={{ color: '#7a7f8c' }}>Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Não autenticado → login
+  if (!user) return <LoginPage />
+
+  // Gerenciamento de usuários (admin)
+  if (showUserMgmt) {
+    return <UserManagement boards={boards} onBack={() => setShowUserMgmt(false)} />
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center grid-bg" style={{ background: 'linear-gradient(135deg, #050b18 0%, #0a0f2e 50%, #050b18 100%)' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center animate-pulse-glow" style={{ background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)' }}>
-            <span className="text-white font-bold">K</span>
-          </div>
-          <p className="text-sm mono" style={{ color: 'rgba(34,211,238,0.6)' }}>Conectando ao banco de dados...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0f16' }}>
+        <p className="text-sm" style={{ color: '#7a7f8c' }}>Carregando quadros...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center grid-bg" style={{ background: 'linear-gradient(135deg, #050b18 0%, #0a0f2e 50%, #050b18 100%)' }}>
-        <div className="rounded-2xl p-8 max-w-md w-full mx-4 text-center" style={{ background: 'rgba(8,15,35,0.9)', border: '1px solid rgba(248,113,113,0.3)' }}>
-          <p className="text-lg font-semibold text-white mb-2">Erro de conexão</p>
-          <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>{error}</p>
-          <p className="text-xs mono" style={{ color: 'rgba(248,113,113,0.7)' }}>
-            Verifique se o servidor API está rodando em http://localhost:3001
-          </p>
-          <button
-            onClick={() => { setError(null); setLoading(true); loadBoards().then(setBoards).catch(e => setError(e.message)).finally(() => setLoading(false)) }}
-            className="mt-4 px-4 py-2 rounded-lg text-sm"
-            style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.3)' }}
-          >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0f16' }}>
+        <div className="rounded-xl p-8 max-w-md w-full mx-4 text-center"
+          style={{ background: '#171a27', border: '1px solid rgba(248,113,113,0.3)' }}>
+          <p className="text-lg font-semibold mb-2" style={{ color: '#e2e8f0' }}>Erro de conexão</p>
+          <p className="text-sm mb-4" style={{ color: '#7a7f8c' }}>{error}</p>
+          <button onClick={() => { setError(null); setLoading(true); loadBoards().then(setBoards).catch(e => setError(e.message)).finally(() => setLoading(false)) }}
+            className="px-4 py-2 rounded-lg text-sm"
+            style={{ background: 'rgba(7,217,99,0.1)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}>
             Tentar novamente
           </button>
         </div>
@@ -123,6 +117,9 @@ function App() {
       onCreate={handleCreate}
       onDelete={handleDelete}
       onRename={handleRename}
+      user={user}
+      onSignOut={signOut}
+      onManageUsers={user.role === 'admin' ? () => setShowUserMgmt(true) : undefined}
     />
   )
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Board } from '../types';
+import type { AuthUser } from '../api';
 import InlineEdit from './InlineEdit';
 import ConfirmModal from './ConfirmModal';
 
@@ -9,9 +10,12 @@ interface Props {
   onCreate: (title: string) => void | Promise<void>;
   onDelete: (id: string) => void | Promise<void>;
   onRename: (id: string, title: string) => void | Promise<void>;
+  user?: AuthUser;
+  onSignOut?: () => void;
+  onManageUsers?: () => void;
 }
 
-const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename }) => {
+const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename, user, onSignOut, onManageUsers }) => {
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -48,16 +52,44 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
-          style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.2)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.12)'; }}
-        >
-          <span className="text-base leading-none font-light">+</span>
-          Novo quadro
-        </button>
+        <div className="flex items-center gap-2">
+          {onManageUsers && (
+            <button
+              onClick={onManageUsers}
+              className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+              style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.1)'; }}
+            >
+              Usuários
+            </button>
+          )}
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+            style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.12)'; }}
+          >
+            <span className="text-base leading-none font-light">+</span>
+            Novo quadro
+          </button>
+          {user && onSignOut && (
+            <div className="flex items-center gap-2 pl-2" style={{ borderLeft: '1px solid #2b2e3a' }}>
+              <span className="text-xs" style={{ color: '#7a7f8c' }}>{user.username}</span>
+              <button
+                onClick={onSignOut}
+                className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"
+                style={{ color: '#7a7f8c', border: '1px solid #2b2e3a' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
+                title="Sair"
+              >
+                Sair
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Content */}
