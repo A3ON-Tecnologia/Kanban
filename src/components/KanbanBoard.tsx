@@ -23,9 +23,11 @@ import InlineEdit from './InlineEdit';
 
 interface Props {
   initialBoard: Board;
+  onBack?: () => void;
+  onBoardChange?: (board: Board) => void;
 }
 
-const KanbanBoard: React.FC<Props> = ({ initialBoard }) => {
+const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) => {
   const [board, setBoard] = useState<Board>(initialBoard);
   const [activeCard, setActiveCard] = useState<{ card: Card; columnId: string } | null>(null);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
@@ -40,7 +42,8 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard }) => {
   const persist = useCallback((b: Board) => {
     setBoard(b);
     saveBoard(b);
-  }, []);
+    onBoardChange?.(b);
+  }, [onBoardChange]);
 
   // ── Column operations ────────────────────────────────────────
   const addColumn = () => {
@@ -227,6 +230,18 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard }) => {
       {/* Header */}
       <header className="relative z-10 px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(99,179,237,0.1)' }}>
         <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#22d3ee'; e.currentTarget.style.borderColor = 'rgba(34,211,238,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+              title="Voltar aos quadros"
+            >
+              ←
+            </button>
+          )}
           <div className="w-8 h-8 rounded-lg flex items-center justify-center animate-pulse-glow" style={{ background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', boxShadow: '0 0 20px rgba(34,211,238,0.4)' }}>
             <span className="text-white text-sm font-bold">K</span>
           </div>
