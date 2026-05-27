@@ -16,6 +16,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import type { Board, Card, Column } from '../types';
 import { saveBoard } from '../storage';
+import { saveBoard as saveBoardAPI } from '../api';
 import KanbanColumn from './KanbanColumn';
 import KanbanCard from './KanbanCard';
 import CardModal from './CardModal';
@@ -233,6 +234,30 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
         .find(c => c.id === modalState.columnId)
         ?.cards.find(card => card.id === modalState.cardId)
     : null;
+
+  const handleSendToBoard = useCallback(async (itemText: string, targetBoardId: string, targetColId: string) => {
+    const targetBoard = boards?.find(b => b.id === targetBoardId);
+    if (!targetBoard) return;
+    const newCard: Card = {
+      id: uuidv4(),
+      title: itemText,
+      description: '',
+      color: '',
+      checklist: [],
+      comments: [],
+      createdAt: new Date().toISOString(),
+      priority: '',
+      dueDate: '',
+      alertMinutes: 30,
+    };
+    const updatedBoard: Board = {
+      ...targetBoard,
+      columns: targetBoard.columns.map(col =>
+        col.id === targetColId ? { ...col, cards: [...col.cards, newCard] } : col
+      ),
+    };
+    await saveBoardAPI(updatedBoard);
+  }, [boards]);
 
   const activeOverlayColumn = activeColumnId
     ? board.columns.find(c => c.id === activeColumnId)
@@ -473,6 +498,8 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
           onClose={() => setModalState(null)}
           onSave={updated => saveCard(updated, modalState.columnId)}
           onDelete={() => deleteCard(modalState.columnId, modalState.cardId)}
+          boards={boards}
+          onSendToBoard={handleSendToBoard}
         />
       )}
     </div>

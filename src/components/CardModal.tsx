@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Card, ChecklistItem, Priority } from '../types';
+import type { Card, ChecklistItem, Priority, Board } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
@@ -7,6 +7,8 @@ interface Props {
   onClose: () => void;
   onSave: (updated: Card) => void;
   onDelete: () => void;
+  boards?: Board[];
+  onSendToBoard?: (itemText: string, boardId: string, columnId: string) => void;
 }
 
 const PRIORITIES: { value: Priority; label: string; color: string; bg: string; glow: string }[] = [
@@ -37,10 +39,13 @@ const COLORS = [
   { hex: '#94a3b8', label: 'Cinza' },
 ];
 
-const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
+const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard }) => {
   const [draft, setDraft] = useState<Card>({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
   const [newCheckItem, setNewCheckItem] = useState('');
   const [newComment, setNewComment] = useState('');
+  const [sendItem, setSendItem] = useState<ChecklistItem | null>(null);
+  const [sendBoardId, setSendBoardId] = useState('');
+  const [sendColId, setSendColId] = useState('');
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') { onSave(draft); onClose(); } };
@@ -88,6 +93,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
   };
 
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
@@ -251,6 +257,16 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
                     textDecoration: item.done ? 'line-through' : 'none',
                   }}
                 />
+                {boards && boards.length > 0 && onSendToBoard && (
+                  <button
+                    onClick={() => { setSendItem(item); setSendBoardId(''); setSendColId(''); }}
+                    className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
+                    style={{ color: '#60a5fa' }}
+                    title="Criar cartão em outro quadro"
+                  >
+                    ↗
+                  </button>
+                )}
                 <button
                   onClick={() => deleteCheck(item.id)}
                   className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
@@ -365,6 +381,100 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
         </div>
       </div>
     </div>
+
+    {/* Mini-modal: enviar item para outro quadro */}
+    {sendItem && boards && onSendToBoard && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+        <div className="rounded-2xl p-5 w-full max-w-sm mx-4" style={{ background: '#171a27', border: '1px solid #2b2e3a', boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}>
+          <p className="text-xs font-medium tracking-widest mb-1" style={{ color: '#7a7f8c', fontSize: '10px' }}>CRIAR CARTÃO EM</p>
+          <p className="text-sm font-medium mb-4 truncate" style={{ color: '#e2e8f0', fontFamily: "'Playfair Display', serif" }}>"{sendItem.text}"</p>
+
+          {/* Seletor de quadro */}
+          <div className="mb-3">
+            <p className="text-xs mb-2" style={{ color: '#7a7f8c' }}>Quadro</p>
+            <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+              {boards.map(b => (
+                <button
+                  key={b.id}
+                  onClick={() => { setSendBoardId(b.id); setSendColId(''); }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all"
+                  style={{
+                    background: sendBoardId === b.id ? 'rgba(7,217,99,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${sendBoardId === b.id ? 'rgba(7,217,99,0.35)' : '#2b2e3a'}`,
+                    color: sendBoardId === b.id ? '#07d963' : '#a0a5b4',
+                  }}
+                >
+                  <span className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    style={{ background: 'rgba(7,217,99,0.15)', color: '#07d963' }}>
+                    {b.title.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Seletor de coluna — aparece após escolher quadro */}
+          {sendBoardId && (() => {
+            const targetBoard = boards.find(b => b.id === sendBoardId);
+            if (!targetBoard || targetBoard.columns.length === 0) return (
+              <p className="text-xs mb-4" style={{ color: '#f87171' }}>Este quadro não possui colunas.</p>
+            );
+            return (
+              <div className="mb-4">
+                <p className="text-xs mb-2" style={{ color: '#7a7f8c' }}>Coluna</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {targetBoard.columns.map(col => (
+                    <button
+                      key={col.id}
+                      onClick={() => setSendColId(col.id)}
+                      className="px-3 py-1.5 rounded-lg text-xs transition-all"
+                      style={{
+                        background: sendColId === col.id ? (col.color ? `${col.color}22` : 'rgba(7,217,99,0.12)') : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${sendColId === col.id ? (col.color || '#07d963') + '55' : '#2b2e3a'}`,
+                        color: sendColId === col.id ? (col.color || '#07d963') : '#a0a5b4',
+                      }}
+                    >
+                      {col.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => {
+                if (sendBoardId && sendColId) {
+                  onSendToBoard(sendItem.text, sendBoardId, sendColId);
+                  setSendItem(null);
+                }
+              }}
+              disabled={!sendBoardId || !sendColId}
+              className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={{
+                background: sendBoardId && sendColId ? '#07d963' : 'rgba(7,217,99,0.15)',
+                color: sendBoardId && sendColId ? '#0d0f16' : 'rgba(7,217,99,0.4)',
+                cursor: sendBoardId && sendColId ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Criar cartão
+            </button>
+            <button
+              onClick={() => setSendItem(null)}
+              className="flex-1 py-2 rounded-lg text-sm transition-all"
+              style={{ background: '#242838', color: '#7a7f8c' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#2d3248'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#242838'; }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
