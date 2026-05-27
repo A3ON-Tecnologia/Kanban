@@ -7,6 +7,7 @@ import ConfirmModal from './ConfirmModal';
 interface Props {
   card: CardType;
   columnId: string;
+  accentColor?: string;
   onOpen: (cardId: string, columnId: string) => void;
   onDelete: (cardId: string, columnId: string) => void;
 }
@@ -40,7 +41,7 @@ function formatDueDate(dueDate: string): { text: string; overdue: boolean } {
   return { text: `${day}/${month} ${hour}:${min}`, overdue };
 }
 
-const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
+const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', onOpen, onDelete }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'card', columnId },
@@ -142,12 +143,12 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
             </svg>
-            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: `${accentColor}99` }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${(doneCount / totalCount) * 100}%`,
-                  background: doneCount === totalCount ? '#4ade80' : 'rgba(255,255,255,0.7)',
+                  background: doneCount === totalCount ? '#4ade80' : accentColor,
                 }}
               />
             </div>

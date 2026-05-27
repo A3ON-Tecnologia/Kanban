@@ -181,6 +181,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
               key={card.id}
               card={card}
               columnId={column.id}
+              accentColor={accent}
               onOpen={onOpenCard}
               onDelete={(cardId) => onDeleteCard(column.id, cardId)}
             />
