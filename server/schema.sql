@@ -43,3 +43,11 @@ CREATE TABLE IF NOT EXISTS checklist_items (
   position  INT           NOT NULL DEFAULT 0,
   FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS comments (
+  id        VARCHAR(36)   NOT NULL PRIMARY KEY,
+  card_id   VARCHAR(36)   NOT NULL,
+  text      TEXT          NOT NULL,
+  created_at VARCHAR(50)  NOT NULL,
+  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -38,8 +38,9 @@ const COLORS = [
 ];
 
 const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
-  const [draft, setDraft] = useState<Card>({ ...card, checklist: [...card.checklist] });
+  const [draft, setDraft] = useState<Card>({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
   const [newCheckItem, setNewCheckItem] = useState('');
+  const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') { onSave(draft); onClose(); } };
@@ -64,6 +65,16 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
 
   const updateCheckText = (id: string, text: string) =>
     update({ checklist: draft.checklist.map((i: ChecklistItem) => i.id === id ? { ...i, text } : i) });
+
+  const addComment = () => {
+    const text = newComment.trim();
+    if (!text) return;
+    update({ comments: [...draft.comments, { id: uuidv4(), text, createdAt: new Date().toISOString() }] });
+    setNewComment('');
+  };
+
+  const deleteComment = (id: string) =>
+    update({ comments: draft.comments.filter(c => c.id !== id) });
 
   const doneCount = draft.checklist.filter((i: ChecklistItem) => i.done).length;
   const totalCount = draft.checklist.length;
@@ -273,6 +284,59 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
               onMouseLeave={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.1)')}
             >
               + Add
+            </button>
+          </div>
+
+          {/* Comentários */}
+          <div>
+            <Label>💬 Comentários ({draft.comments.length})</Label>
+          </div>
+
+          {draft.comments.length > 0 && (
+            <div className="flex flex-col gap-2 max-h-32 overflow-y-auto">
+              {draft.comments.map(comment => (
+                <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <span className="text-xs mono" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      {new Date(comment.createdAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                      })}
+                    </span>
+                    <button
+                      onClick={() => deleteComment(comment.id)}
+                      className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center"
+                      style={{ color: 'rgba(248,113,113,0.6)' }}
+                      title="Deletar comentário"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="text-xs leading-snug" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                    {comment.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newComment}
+              onChange={e => setNewComment(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') addComment(); }}
+              placeholder="Adicionar comentário..."
+              className={`flex-1 rounded-lg px-3 py-2 text-sm ${focusStyle}`}
+              style={inputStyle}
+            />
+            <button
+              onClick={addComment}
+              className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.2)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.18)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.1)')}
+            >
+              ✓
             </button>
           </div>
 

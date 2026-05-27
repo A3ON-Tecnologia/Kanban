@@ -28,6 +28,11 @@ router.get('/', async (req, res) => {
             [card.id]
           );
 
+          const [comments] = await pool.execute(
+            'SELECT * FROM comments WHERE card_id = ? ORDER BY created_at',
+            [card.id]
+          );
+
           cardsList.push({
             id:           card.id,
             title:        card.title,
@@ -38,6 +43,7 @@ router.get('/', async (req, res) => {
             alertMinutes: card.alert_minutes || 30,
             createdAt:    card.created_at,
             checklist:    items.map(i => ({ id: i.id, text: i.text, done: i.done === 1 })),
+            comments:     comments.map(c => ({ id: c.id, text: c.text, createdAt: c.created_at })),
           });
         }
 
@@ -114,6 +120,13 @@ router.put('/:id', async (req, res) => {
           await conn.execute(
             'INSERT INTO checklist_items (id, card_id, text, done, position) VALUES (?, ?, ?, ?, ?)',
             [item.id, card.id, item.text, item.done ? 1 : 0, itemI]
+          );
+        }
+
+        for (const comment of card.comments || []) {
+          await conn.execute(
+            'INSERT INTO comments (id, card_id, text, created_at) VALUES (?, ?, ?, ?)',
+            [comment.id, card.id, comment.text, comment.createdAt]
           );
         }
       }

@@ -77,6 +77,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
       description: '',
       color: '',
       checklist: [],
+      comments: [],
       createdAt: new Date().toISOString(),
       priority: '',
       dueDate: '',

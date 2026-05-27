@@ -4,6 +4,12 @@ export interface ChecklistItem {
   done: boolean;
 }
 
+export interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+}
+
 export type Priority = 'baixa' | 'media' | 'alta' | '';
 
 export interface Card {
@@ -12,6 +18,7 @@ export interface Card {
   description: string;
   color: string;
   checklist: ChecklistItem[];
+  comments: Comment[];
   createdAt: string;
   priority: Priority;
   dueDate: string;       // datetime-local string or ''

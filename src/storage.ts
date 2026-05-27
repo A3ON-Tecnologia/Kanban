@@ -22,6 +22,7 @@ function makeDefaultBoard(): Board {
               { id: uuidv4(), text: 'Reunião de kickoff', done: false },
               { id: uuidv4(), text: 'Definir stakeholders', done: false },
             ],
+            comments: [],
             createdAt: new Date().toISOString(),
             priority: 'alta',
             dueDate: '',
@@ -42,6 +43,7 @@ function makeDefaultBoard(): Board {
               { id: uuidv4(), text: 'Wireframes', done: true },
               { id: uuidv4(), text: 'Design final', done: false },
             ],
+            comments: [],
             createdAt: new Date().toISOString(),
             priority: 'media',
             dueDate: '',
@@ -62,6 +64,7 @@ function makeDefaultBoard(): Board {
               { id: uuidv4(), text: 'Entrevistas', done: true },
               { id: uuidv4(), text: 'Documentação', done: true },
             ],
+            comments: [],
             createdAt: new Date().toISOString(),
             priority: 'baixa',
             dueDate: '',
@@ -78,6 +81,7 @@ function migrateCard(card: Record<string, unknown>): Record<string, unknown> {
     priority: '',
     dueDate: '',
     alertMinutes: 30,
+    comments: [],
     ...card,
   };
 }
