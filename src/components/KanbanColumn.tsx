@@ -109,7 +109,7 @@ const KanbanColumn: React.FC<Props> = ({ column, onAddCard, onDeleteCard, onOpen
       <div className="mx-4 h-px" style={{ background: 'linear-gradient(90deg, rgba(34,211,238,0.2), transparent)' }} />
 
       {/* Cards */}
-      <div ref={setDroppableRef} className="flex-1 px-3 py-3 flex flex-col gap-2 min-h-4">
+      <div ref={setDroppableRef} className="flex-1 px-3 py-3 flex flex-col gap-3 min-h-4">
         <SortableContext items={column.cards.map((c: Card) => c.id)} strategy={verticalListSortingStrategy}>
           {column.cards.map((card: Card) => (
             <KanbanCard

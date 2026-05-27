@@ -1,4 +1,5 @@
 # Logs
+server
 .env
 logs
 *.log

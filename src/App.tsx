@@ -2,9 +2,35 @@ import './index.css'
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { loadBoards, saveBoard, createBoard as apiCreateBoard, deleteBoard as apiDeleteBoard } from './api'
+import { loadBoards as loadLocalBoards } from './storage'
 import type { Board } from './types'
 import KanbanBoard from './components/KanbanBoard'
 import BoardList from './components/BoardList'
+
+async function migrateLocalStorageToAPI(apiBoards: Board[]): Promise<Board[]> {
+  // Only migrate if API has no cards at all
+  const totalCards = apiBoards.reduce((s, b) => s + b.columns.reduce((s2, c) => s2 + c.cards.length, 0), 0)
+  if (totalCards > 0) return apiBoards
+
+  // Check localStorage for data
+  const localBoards = loadLocalBoards()
+  const localCards = localBoards.reduce((s, b) => s + b.columns.reduce((s2, c) => s2 + c.cards.length, 0), 0)
+  if (localCards === 0) return apiBoards
+
+  // Merge: for each local board, find matching API board by title or create new
+  const result: Board[] = []
+  for (const localBoard of localBoards) {
+    const match = apiBoards.find(b => b.title === localBoard.title) ?? localBoard
+    const merged: Board = { ...match, columns: localBoard.columns }
+    await saveBoard(merged)
+    result.push(merged)
+  }
+  // Keep API boards that weren't in localStorage
+  for (const apiBoard of apiBoards) {
+    if (!result.find(b => b.id === apiBoard.id)) result.push(apiBoard)
+  }
+  return result
+}
 
 function App() {
   const [boards, setBoards] = useState<Board[]>([])
@@ -14,6 +40,7 @@ function App() {
 
   useEffect(() => {
     loadBoards()
+      .then(apiBoards => migrateLocalStorageToAPI(apiBoards))
       .then(setBoards)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))

@@ -22,9 +22,9 @@ const COLOR_MAP: Record<string, { bar: string; glow: string }> = {
 };
 
 const PRIORITY_MAP = {
-  baixa: { label: 'Baixa', color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  border: 'rgba(74,222,128,0.3)' },
-  media: { label: 'Média', color: '#facc15', bg: 'rgba(250,204,21,0.12)',  border: 'rgba(250,204,21,0.3)' },
-  alta:  { label: 'Alta',  color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)' },
+  baixa: { label: 'Baixa',  color: '#4ade80', bg: 'rgba(74,222,128,0.15)',  border: 'rgba(74,222,128,0.35)' },
+  media: { label: 'Média',  color: '#fbbf24', bg: 'rgba(251,191,36,0.15)',  border: 'rgba(251,191,36,0.35)' },
+  alta:  { label: 'Alta',   color: '#f87171', bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.35)' },
 };
 
 function formatDueDate(dueDate: string): { text: string; overdue: boolean } {
@@ -32,21 +32,11 @@ function formatDueDate(dueDate: string): { text: string; overdue: boolean } {
   const due = new Date(dueDate);
   const now = new Date();
   const overdue = due < now;
-  const diffMs = due.getTime() - now.getTime();
-  const diffH = diffMs / 3600000;
-
-  let text: string;
-  if (overdue) {
-    const hoursAgo = Math.abs(diffH);
-    text = hoursAgo < 24 ? `${Math.round(hoursAgo)}h atrás` : `${Math.round(hoursAgo / 24)}d atrás`;
-  } else if (diffH < 1) {
-    text = `${Math.round(diffH * 60)}min`;
-  } else if (diffH < 24) {
-    text = `${Math.round(diffH)}h`;
-  } else {
-    text = due.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-  }
-  return { text, overdue };
+  const day   = String(due.getDate()).padStart(2, '0');
+  const month = String(due.getMonth() + 1).padStart(2, '0');
+  const hour  = String(due.getHours()).padStart(2, '0');
+  const min   = String(due.getMinutes()).padStart(2, '0');
+  return { text: `${day}/${month} ${hour}:${min}`, overdue };
 }
 
 const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
@@ -74,28 +64,29 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
       ref={setNodeRef}
       style={{
         ...style,
-        background: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(18, 27, 52, 0.97)',
+        backdropFilter: 'blur(16px)',
         border: hovered
-          ? `1px solid ${colorInfo ? colorInfo.bar : 'rgba(34,211,238,0.4)'}`
-          : '1px solid rgba(255,255,255,0.07)',
+          ? `1px solid ${colorInfo ? colorInfo.bar : 'rgba(34,211,238,0.35)'}`
+          : '1px solid rgba(255,255,255,0.09)',
+        borderLeft: colorInfo
+          ? `3px solid ${colorInfo.bar}`
+          : '3px solid rgba(255,255,255,0.12)',
         boxShadow: hovered
-          ? `0 0 18px ${colorInfo ? colorInfo.glow : 'rgba(34,211,238,0.12)'}, 0 4px 20px rgba(0,0,0,0.5)`
-          : '0 2px 8px rgba(0,0,0,0.3)',
+          ? `0 4px 24px rgba(0,0,0,0.6), 0 0 16px ${colorInfo ? colorInfo.glow : 'rgba(34,211,238,0.08)'}`
+          : '0 2px 12px rgba(0,0,0,0.45)',
         transition: 'all 0.18s ease',
-        transform: hovered && !isDragging ? `${CSS.Transform.toString(transform) || ''} translateY(-2px)` : CSS.Transform.toString(transform) || '',
+        transform: hovered && !isDragging
+          ? `${CSS.Transform.toString(transform) || ''} translateY(-3px)`
+          : CSS.Transform.toString(transform) || '',
       }}
-      className="rounded-xl cursor-pointer select-none overflow-hidden"
+      className="rounded-2xl cursor-pointer select-none overflow-hidden"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onOpen(card.id, columnId)}
     >
-      {/* Color accent bar */}
-      {card.color && (
-        <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${colorInfo?.bar}, transparent)`, boxShadow: `0 0 8px ${colorInfo?.glow}` }} />
-      )}
-
-      <div className="p-3">
+      <div className="p-4 flex flex-col gap-2">
+        {/* Title row */}
         <div className="flex items-start justify-between gap-2">
           <div
             {...attributes}
@@ -103,60 +94,66 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
             className="flex-1 min-w-0 cursor-grab active:cursor-grabbing"
             onClick={e => e.stopPropagation()}
           >
-            <p className="text-sm font-medium leading-snug break-words" style={{ color: 'rgba(255,255,255,0.88)' }}>
+            <p className="text-sm font-semibold leading-snug break-words" style={{ color: 'rgba(255,255,255,0.93)' }}>
               {card.title}
             </p>
           </div>
-          {hovered && (
-            <button
-              onClick={e => { e.stopPropagation(); onDelete(card.id, columnId); }}
-              className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-xs transition-all"
-              style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.15)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-              title="Excluir cartão"
-            >
-              ✕
-            </button>
-          )}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Alert dot */}
+            {card.alertMinutes > 0 && (
+              <span
+                title="Alerta configurado"
+                style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: '#fbbf24',
+                  boxShadow: '0 0 6px rgba(251,191,36,0.7)',
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            {hovered && (
+              <button
+                onClick={e => { e.stopPropagation(); onDelete(card.id, columnId); }}
+                className="w-5 h-5 rounded flex items-center justify-center text-xs transition-all"
+                style={{ color: 'rgba(255,255,255,0.28)', background: 'rgba(255,255,255,0.05)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.28)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                title="Excluir cartão"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* Priority badge */}
+        {priorityInfo && (
+          <div>
+            <span
+              className="inline-block text-xs px-2.5 py-0.5 rounded-lg font-medium"
+              style={{
+                color: priorityInfo.color,
+                background: priorityInfo.bg,
+                border: `1px solid ${priorityInfo.border}`,
+                fontSize: '11px',
+              }}
+            >
+              {priorityInfo.label}
+            </span>
+          </div>
+        )}
+
+        {/* Description */}
         {card.description && (
-          <p className="text-xs mt-1.5 leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
             {card.description}
           </p>
         )}
 
-        {/* Priority + Due date badges */}
-        {(priorityInfo || due) && (
-          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            {priorityInfo && (
-              <span
-                className="text-xs px-2 py-0.5 rounded-md mono font-medium"
-                style={{ color: priorityInfo.color, background: priorityInfo.bg, border: `1px solid ${priorityInfo.border}`, fontSize: '10px' }}
-              >
-                {priorityInfo.label}
-              </span>
-            )}
-            {due && (
-              <span
-                className="text-xs px-2 py-0.5 rounded-md mono flex items-center gap-1"
-                style={{
-                  color: due.overdue ? '#f87171' : 'rgba(255,255,255,0.4)',
-                  background: due.overdue ? 'rgba(248,113,113,0.1)' : 'rgba(255,255,255,0.04)',
-                  border: due.overdue ? '1px solid rgba(248,113,113,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                  fontSize: '10px',
-                }}
-              >
-                <span>📅</span>
-                <span>{due.text}</span>
-              </span>
-            )}
-          </div>
-        )}
-
+        {/* Checklist progress */}
         {totalCount > 0 && (
-          <div className="mt-2.5 flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-1">
             <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
@@ -168,8 +165,31 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
                 }}
               />
             </div>
-            <span className="text-xs mono" style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px' }}>
+            <span className="mono" style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px' }}>
               {doneCount}/{totalCount}
+            </span>
+          </div>
+        )}
+
+        {/* Due date at bottom */}
+        {due && (
+          <div className="flex items-center gap-1.5 pt-1 mt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <svg
+              width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke={due.overdue ? '#f87171' : 'rgba(255,255,255,0.3)'}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span
+              className="mono"
+              style={{
+                fontSize: '11px',
+                color: due.overdue ? '#f87171' : 'rgba(255,255,255,0.35)',
+              }}
+            >
+              {due.text}
             </span>
           </div>
         )}

@@ -1,6 +1,7 @@
 import type { Board } from './types';
 
-const API_URL = 'http://localhost:3001/api';
+// Em produção usa URL relativa; em dev aponta para o servidor local
+const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8687/api';
 
 export async function loadBoards(): Promise<Board[]> {
   const res = await fetch(`${API_URL}/boards`);
