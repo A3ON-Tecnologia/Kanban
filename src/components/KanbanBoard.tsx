@@ -225,44 +225,59 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
   const totalCards = board.columns.reduce((acc, c) => acc + c.cards.length, 0);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0f1117' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#0d0f16' }}>
       {/* Header */}
-      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#0f1117' }}>
-        <div className="flex items-center gap-4">
+      <header
+        className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
+        style={{ borderBottom: '1px solid #2b2e3a', background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(12px)' }}
+      >
+        <div className="flex items-center gap-3">
           {onBack && (
             <button
               onClick={onBack}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #2b2e3a', color: '#7a7f8c' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
               title="Voltar aos quadros"
             >
               ←
             </button>
           )}
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#1e2333', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <span className="text-sm font-bold" style={{ color: 'rgba(226,232,240,0.8)' }}>K</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: 'rgba(7,217,99,0.15)', border: '1px solid rgba(7,217,99,0.25)' }}>
+            <span className="text-sm font-bold" style={{ color: '#07d963' }}>K</span>
           </div>
-          <InlineEdit
-            value={board.title}
-            onSave={v => persist({ ...board, title: v })}
-            className="text-xl font-semibold tracking-tight"
-            inputClassName="text-white placeholder-white/30"
-            tag="h1"
-          />
+          <div>
+            <InlineEdit
+              value={board.title}
+              onSave={v => persist({ ...board, title: v })}
+              className="font-semibold leading-tight"
+              inputClassName="text-white placeholder-white/30"
+              tag="h1"
+              style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: '#e2e8f0' }}
+            />
+            <p style={{ fontSize: '11.5px', color: '#7a7f8c', marginTop: '1px' }}>
+              {totalCards} {totalCards === 1 ? 'tarefa' : 'tarefas'} · {board.columns.length} {board.columns.length === 1 ? 'coluna' : 'colunas'}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4">
-            <Stat label="COLUNAS" value={board.columns.length} color="rgba(148,163,184,0.7)" />
-            <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.08)' }} />
-            <Stat label="CARTÕES" value={totalCards} color="rgba(148,163,184,0.7)" />
-          </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAddingColumn(true)}
+            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+            style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.12)'; }}
+          >
+            <span className="text-base leading-none font-light">+</span>
+            Nova coluna
+          </button>
         </div>
       </header>
 
       {/* Board */}
-      <main className="flex-1 px-8 py-6 overflow-x-auto">
+      <main className="flex-1 p-6 overflow-x-auto">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -274,7 +289,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
             items={board.columns.map(c => c.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex gap-4 items-start min-w-max pb-4">
+            <div className="flex gap-5 items-start min-w-max pb-4">
               {board.columns.map((col: Column, colIndex: number) => (
                 <KanbanColumn
                   key={col.id}
@@ -289,8 +304,8 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
               ))}
 
               {/* Add column */}
-              {addingColumn ? (
-                <div className="flex-shrink-0 w-72 rounded-xl p-4 flex flex-col gap-3" style={{ background: '#131720', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {addingColumn && (
+                <div className="flex-shrink-0 w-[300px] rounded-xl p-3 flex flex-col gap-2" style={{ background: '#1b1e2f', border: '1px solid rgba(7,217,99,0.3)' }}>
                   <input
                     autoFocus
                     value={newColumnTitle}
@@ -300,37 +315,26 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
                       if (e.key === 'Escape') { setAddingColumn(false); setNewColumnTitle(''); }
                     }}
                     placeholder="Nome da coluna..."
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none text-white placeholder-white/30 mono"
-                    style={{ background: '#1e2333', border: '1px solid rgba(255,255,255,0.12)' }}
+                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                    style={{ background: 'transparent', border: 'none', color: '#e2e8f0' }}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={addColumn}
-                      className="flex-1 text-sm py-1.5 rounded-lg font-semibold transition-colors"
-                      style={{ background: '#3b82f6', color: '#fff' }}
+                      className="flex-1 text-xs py-1.5 rounded-md font-semibold transition-colors"
+                      style={{ background: '#07d963', color: '#0d0f16' }}
                     >
-                      Criar
+                      Adicionar
                     </button>
                     <button
                       onClick={() => { setAddingColumn(false); setNewColumnTitle(''); }}
-                      className="text-sm px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ color: 'rgba(148,163,184,0.5)' }}
+                      className="flex-1 text-xs px-3 py-1.5 rounded-md transition-colors"
+                      style={{ background: '#242838', color: '#7a7f8c' }}
                     >
-                      ✕
+                      Cancelar
                     </button>
                   </div>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setAddingColumn(true)}
-                  className="flex-shrink-0 w-72 py-4 px-5 flex items-center gap-3 transition-all rounded-xl"
-                  style={{ border: '1px dashed rgba(255,255,255,0.1)', color: 'rgba(148,163,184,0.4)' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.22)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(148,163,184,0.75)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.02)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(148,163,184,0.4)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-                >
-                  <span className="text-base leading-none">+</span>
-                  <span className="text-sm font-medium">Nova coluna</span>
-                </button>
               )}
             </div>
           </SortableContext>
@@ -347,7 +351,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
               </div>
             )}
             {activeOverlayColumn && (
-              <div className="rotate-1 w-72 h-24 rounded-2xl" style={{ background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.2)' }} />
+              <div className="rotate-1 w-[300px] h-24 rounded-xl" style={{ background: 'rgba(7,217,99,0.04)', border: '1px solid rgba(7,217,99,0.15)' }} />
             )}
           </DragOverlay>
         </DndContext>
@@ -365,12 +369,5 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
     </div>
   );
 };
-
-const Stat: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
-  <div className="flex flex-col items-end gap-0.5">
-    <span className="text-xs font-semibold mono tracking-widest" style={{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }}>{label}</span>
-    <span className="text-2xl font-bold mono leading-none" style={{ color }}>{value}</span>
-  </div>
-);
 
 export default KanbanBoard;

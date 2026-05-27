@@ -17,7 +17,13 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 // Serve o frontend buildado (pasta dist na raiz do projeto)
 const distPath = path.join(__dirname, '..', 'dist');
-app.use(express.static(distPath));
+app.use(express.static(distPath, {
+  etag: false,
+  lastModified: false,
+  setHeaders(res) {
+    res.setHeader('Cache-Control', 'no-store');
+  },
+}));
 
 // Qualquer rota não-API retorna o index.html (SPA)
 app.get('*', (_, res) => {

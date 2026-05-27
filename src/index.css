@@ -1,16 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@600&display=swap');
+
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #050b18;
+  background: #0d0f16;
 }
 
 ::-webkit-scrollbar {
@@ -19,11 +21,11 @@ body {
 }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 179, 237, 0.25);
+  background: #2b2e3a;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 179, 237, 0.5);
+  background: #3a3f52;
 }
 
 .glass {

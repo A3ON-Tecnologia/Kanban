@@ -8,6 +8,7 @@ interface Props {
   tag?: 'h1' | 'h2' | 'h3' | 'p' | 'span';
   placeholder?: string;
   textColor?: string;
+  style?: React.CSSProperties;
 }
 
 const InlineEdit: React.FC<Props> = ({
@@ -18,6 +19,7 @@ const InlineEdit: React.FC<Props> = ({
   tag: Tag = 'span',
   placeholder = 'Sem título',
   textColor = 'rgba(255,255,255,0.9)',
+  style,
 }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -62,7 +64,7 @@ const InlineEdit: React.FC<Props> = ({
   return (
     <Tag
       className={`cursor-pointer rounded px-1 -mx-1 transition-colors ${className}`}
-      style={{ color: textColor }}
+      style={{ color: textColor, ...style }}
       onClick={() => setEditing(true)}
       title="Clique para editar"
     >

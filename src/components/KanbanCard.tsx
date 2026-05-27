@@ -21,10 +21,10 @@ const COLOR_BAR: Record<string, string> = {
   '#94a3b8': '#94a3b8',
 };
 
-const PRIORITY_MAP = {
-  baixa: { label: 'Baixa',  color: '#4ade80', bg: 'rgba(74,222,128,0.15)',  border: 'rgba(74,222,128,0.3)' },
-  media: { label: 'Média',  color: '#60a5fa', bg: 'rgba(96,165,250,0.15)',  border: 'rgba(96,165,250,0.3)' },
-  alta:  { label: 'Alta',   color: '#f87171', bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.3)' },
+const PRIORITY_DOT: Record<string, string> = {
+  baixa: '#4ade80',
+  media: '#facc15',
+  alta:  '#f87171',
 };
 
 function formatDueDate(dueDate: string): { text: string; overdue: boolean } {
@@ -47,36 +47,39 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
 
   const [hovered, setHovered] = useState(false);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
-  };
-
+  const colorBar = COLOR_BAR[card.color] || null;
+  const priorityDot = card.priority ? PRIORITY_DOT[card.priority] : null;
+  const due = card.dueDate ? formatDueDate(card.dueDate) : null;
   const doneCount = card.checklist.filter(i => i.done).length;
   const totalCount = card.checklist.length;
-  const colorBar = COLOR_BAR[card.color] || null;
-  const priorityInfo = card.priority ? PRIORITY_MAP[card.priority] : null;
-  const due = card.dueDate ? formatDueDate(card.dueDate) : null;
+
+  // Build transform string — add rotate+scale when dragging
+  const baseTransform = CSS.Transform.toString(transform);
+  const cardTransform = isDragging && baseTransform
+    ? `${baseTransform} rotate(1deg) scale(1.02)`
+    : baseTransform ?? undefined;
 
   return (
     <div
       ref={setNodeRef}
       style={{
-        ...style,
-        background: hovered ? '#1e2333' : '#181d2a',
-        border: '1px solid rgba(255,255,255,0.07)',
-        borderLeft: colorBar ? `3px solid ${colorBar}` : '3px solid rgba(255,255,255,0.1)',
-        transition: 'background 0.15s ease',
-        opacity: isDragging ? 0.35 : 1,
+        transform: cardTransform,
+        transition: isDragging ? 'none' : transition,
+        background: '#171a27',
+        border: `1px solid ${isDragging ? 'rgba(7,217,99,0.5)' : hovered ? 'rgba(7,217,99,0.35)' : '#2b2e3a'}`,
+        borderLeft: colorBar ? `3px solid ${colorBar}` : `3px solid ${isDragging ? 'rgba(7,217,99,0.5)' : '#2b2e3a'}`,
+        boxShadow: isDragging
+          ? '0 0 20px rgba(7,217,99,0.25), 0 8px 30px rgba(0,0,0,0.6)'
+          : hovered ? '0 4px 20px rgba(0,0,0,0.45)' : '0 1px 4px rgba(0,0,0,0.35)',
+        opacity: isDragging ? 0.9 : 1,
       }}
       className="rounded-xl cursor-pointer select-none overflow-hidden"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onOpen(card.id, columnId)}
     >
-      <div className="p-3 flex flex-col gap-2">
-        {/* Title row */}
+      <div className="p-4 flex flex-col gap-2.5">
+        {/* Header: title + priority dot */}
         <div className="flex items-start justify-between gap-2">
           <div
             {...attributes}
@@ -84,27 +87,22 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
             className="flex-1 min-w-0 cursor-grab active:cursor-grabbing"
             onClick={() => onOpen(card.id, columnId)}
           >
-            <p className="text-sm font-semibold leading-snug break-words" style={{ color: '#e2e8f0' }}>
+            <h3 className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: '#e2e8f0' }}>
               {card.title}
-            </p>
+            </h3>
           </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
             {card.alertMinutes > 0 && (
-              <span
-                title="Alerta configurado"
-                style={{
-                  width: 7, height: 7, borderRadius: '50%',
-                  background: '#fbbf24',
-                  display: 'inline-block',
-                  flexShrink: 0,
-                }}
-              />
+              <span title="Alerta configurado" style={{ width: 7, height: 7, borderRadius: '50%', background: '#fbbf24', display: 'inline-block', flexShrink: 0 }} />
+            )}
+            {priorityDot && (
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: priorityDot, display: 'inline-block', flexShrink: 0 }} />
             )}
             {hovered && (
               <button
                 onClick={e => { e.stopPropagation(); onDelete(card.id, columnId); }}
                 className="w-5 h-5 rounded flex items-center justify-center text-xs transition-colors"
-                style={{ color: 'rgba(255,255,255,0.25)', background: 'transparent' }}
+                style={{ color: 'rgba(255,255,255,0.25)' }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = 'transparent'; }}
                 title="Excluir cartão"
@@ -115,62 +113,39 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
           </div>
         </div>
 
-        {/* Priority badge */}
-        {priorityInfo && (
-          <div>
-            <span
-              className="inline-block text-xs px-2 py-0.5 rounded font-medium"
-              style={{
-                color: priorityInfo.color,
-                background: priorityInfo.bg,
-                border: `1px solid ${priorityInfo.border}`,
-                fontSize: '11px',
-                letterSpacing: '0.01em',
-              }}
-            >
-              {priorityInfo.label}
-            </span>
-          </div>
-        )}
-
         {/* Description */}
         {card.description && (
-          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'rgba(148,163,184,0.7)' }}>
+          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#7a7f8c' }}>
             {card.description}
           </p>
         )}
 
+        {/* Due date */}
+        {due && (
+          <div className="flex items-center gap-1" style={{ color: due.overdue ? '#f87171' : '#7a7f8c' }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+              stroke={due.overdue ? '#f87171' : '#7a7f8c'}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span style={{ fontSize: '11px' }}>{due.text}</span>
+          </div>
+        )}
+
         {/* Checklist progress */}
         {totalCount > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-0.5">
             <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${(doneCount / totalCount) * 100}%`,
-                  background: doneCount === totalCount ? '#4ade80' : '#60a5fa',
+                  background: doneCount === totalCount ? '#4ade80' : '#07d963',
                 }}
               />
             </div>
-            <span style={{ color: 'rgba(148,163,184,0.5)', fontSize: '10px' }}>
-              {doneCount}/{totalCount}
-            </span>
-          </div>
-        )}
-
-        {/* Due date */}
-        {due && (
-          <div className="flex items-center gap-1.5 pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-              stroke={due.overdue ? '#f87171' : 'rgba(148,163,184,0.45)'}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span style={{ fontSize: '11px', color: due.overdue ? '#f87171' : 'rgba(148,163,184,0.55)' }}>
-              {due.text}
-            </span>
+            <span style={{ color: '#7a7f8c', fontSize: '10px' }}>{doneCount}/{totalCount}</span>
           </div>
         )}
       </div>

@@ -50,78 +50,69 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
       ref={setSortableRef}
       style={{
         ...style,
-        background: '#131720',
-        border: '1px solid rgba(255,255,255,0.07)',
-        borderTop: `3px solid ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}`,
+        background: '#1b1e2f',
+        border: '1px solid #2b2e3a',
       }}
-      className="flex-shrink-0 w-72 flex flex-col rounded-xl"
+      className="flex-shrink-0 w-[300px] flex flex-col rounded-xl overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 pt-3 pb-2 gap-2">
+      <div
+        className="flex items-center justify-between px-3 py-2.5 gap-2"
+        style={{
+          background: `linear-gradient(to right, ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}25, ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}08)`,
+          borderBottom: `1px solid ${COLUMN_ACCENT[index % COLUMN_ACCENT.length]}30`,
+        }}
+      >
         <div
           {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing flex-1 min-w-0 flex items-center gap-2"
         >
-          <span
-            className="text-xs font-bold mono flex-shrink-0"
-            style={{ color: COLUMN_ACCENT[index % COLUMN_ACCENT.length] }}
-          >
-            {index + 1}
-          </span>
-          <span style={{ color: 'rgba(255,255,255,0.15)' }}>—</span>
           <InlineEdit
             value={column.title}
             onSave={v => onRenameColumn(column.id, v)}
             className="font-semibold text-sm block w-full"
-            textColor="rgba(226,232,240,0.9)"
+            textColor="#ffffff"
             tag="h3"
           />
-        </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
           <span
-            className="text-xs font-semibold px-1.5 py-0.5 rounded"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              color: 'rgba(148,163,184,0.8)',
-              minWidth: 20,
-              textAlign: 'center',
-            }}
+            className="flex-shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full"
+            style={{ background: 'rgba(255,255,255,0.08)', color: '#7a7f8c', fontSize: '10px' }}
           >
             {column.cards.length}
           </span>
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="w-6 h-6 rounded flex items-center justify-center text-base leading-none transition-colors"
-              style={{ color: showMenu ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.22)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
-              onMouseLeave={e => (e.currentTarget.style.color = showMenu ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.22)')}
+        </div>
+        <div className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-6 h-6 rounded flex items-center justify-center text-base leading-none transition-colors"
+            style={{ color: showMenu ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
+            onMouseLeave={e => (e.currentTarget.style.color = showMenu ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)')}
+          >
+            ···
+          </button>
+          {showMenu && (
+            <div
+              className="absolute right-0 top-7 rounded-lg z-10 min-w-36 py-1"
+              style={{ background: '#1f2235', border: '1px solid #2b2e3a', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
             >
-              ···
-            </button>
-            {showMenu && (
-              <div
-                className="absolute right-0 top-7 rounded-lg z-10 min-w-36 py-1"
-                style={{ background: '#1e2333', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+              <button
+                onClick={() => { onDeleteColumn(column.id); setShowMenu(false); }}
+                className="w-full text-left px-3 py-2 text-sm transition-colors"
+                style={{ color: '#f87171' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.08)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <button
-                  onClick={() => { onDeleteColumn(column.id); setShowMenu(false); }}
-                  className="w-full text-left px-3 py-2 text-sm transition-colors"
-                  style={{ color: '#f87171' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  Excluir coluna
-                </button>
-              </div>
-            )}
-          </div>
+                Excluir coluna
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Cards */}
-      <div ref={setDroppableRef} className="flex-1 px-2 py-2 flex flex-col gap-2 min-h-4">
+      <div ref={setDroppableRef} className="flex-1 px-3 py-3 flex flex-col gap-3 min-h-4">
         <SortableContext items={column.cards.map((c: Card) => c.id)} strategy={verticalListSortingStrategy}>
           {column.cards.map((card: Card) => (
             <KanbanCard
@@ -137,7 +128,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
 
       {/* Add card */}
       {addingCard ? (
-        <div className="px-2 pb-2 flex flex-col gap-2">
+        <div className="px-3 pb-3 flex flex-col gap-2">
           <textarea
             autoFocus
             value={newCardTitle}
@@ -149,9 +140,9 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
             placeholder="Título do cartão..."
             className="w-full rounded-lg p-2.5 text-sm resize-none outline-none"
             style={{
-              background: '#1e2333',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: 'rgba(226,232,240,0.9)',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid #2b2e3a',
+              color: '#e2e8f0',
             }}
             rows={2}
           />
@@ -175,10 +166,10 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
       ) : (
         <button
           onClick={() => setAddingCard(true)}
-          className="mx-2 mb-2 flex items-center gap-2 text-sm px-3 py-2 rounded-lg transition-all"
-          style={{ color: 'rgba(148,163,184,0.4)', border: '1px dashed rgba(255,255,255,0.07)' }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.8)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'transparent'; }}
+          className="mx-3 mb-3 flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg transition-all"
+          style={{ color: 'rgba(148,163,184,0.4)', border: '1px dashed #2b2e3a' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.8)'; e.currentTarget.style.borderColor = 'rgba(7,217,99,0.3)'; e.currentTarget.style.background = 'rgba(7,217,99,0.04)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.4)'; e.currentTarget.style.borderColor = '#2b2e3a'; e.currentTarget.style.background = 'transparent'; }}
         >
           <span className="text-base leading-none">+</span>
           <span>Adicionar cartão</span>

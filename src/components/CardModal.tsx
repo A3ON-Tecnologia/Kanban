@@ -81,13 +81,11 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
   const inputStyle = {
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: 'rgba(255,255,255,0.85)',
+    background: '#242838',
+    border: '1px solid #2b2e3a',
+    color: '#e2e8f0',
     outline: 'none',
   };
-
-  const focusStyle = 'focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20';
 
   return (
     <div
@@ -96,35 +94,35 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
       onClick={e => { if (e.target === e.currentTarget) { onSave(draft); onClose(); } }}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col rounded-2xl animate-slide-in"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col rounded-xl"
         style={{
-          background: 'rgba(8, 15, 40, 0.97)',
-          border: '1px solid rgba(34,211,238,0.2)',
-          boxShadow: '0 0 60px rgba(34,211,238,0.08), 0 24px 80px rgba(0,0,0,0.7)',
+          background: '#171a27',
+          border: '1px solid #2b2e3a',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
         }}
       >
         {/* Accent top bar */}
         {draft.color && (
-          <div className="h-0.5 rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${draft.color}, transparent 70%)`, boxShadow: `0 0 12px ${draft.color}` }} />
+          <div className="h-0.5 rounded-t-xl" style={{ background: `linear-gradient(90deg, ${draft.color}, transparent 70%)` }} />
         )}
 
-        <div className="p-6 flex flex-col gap-5">
+        <div className="p-5 flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <textarea
               value={draft.title}
               onChange={e => update({ title: e.target.value })}
-              className={`flex-1 text-lg font-bold resize-none rounded-lg px-2 py-1 ${focusStyle}`}
-              style={{ ...inputStyle, border: '1px solid transparent', background: 'transparent' }}
+              className="flex-1 text-base font-semibold resize-none rounded-lg px-2 py-1 outline-none"
+              style={{ ...inputStyle, border: '1px solid transparent', background: 'transparent', color: '#e2e8f0' }}
               rows={2}
               placeholder="Título do cartão"
             />
             <button
               onClick={() => { onSave(draft); onClose(); }}
               className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all"
-              style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'white'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              style={{ color: '#7a7f8c', background: 'rgba(255,255,255,0.05)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; }}
             >
               ✕
             </button>
@@ -135,8 +133,8 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
           <textarea
             value={draft.description}
             onChange={e => update({ description: e.target.value })}
-            className={`w-full rounded-xl p-3 text-sm resize-none ${focusStyle}`}
-            style={inputStyle}
+            className="w-full rounded-lg p-3 text-sm resize-none outline-none"
+            style={{ ...inputStyle }}
             rows={3}
             placeholder="Adicione uma descrição detalhada..."
           />
@@ -152,8 +150,8 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
                 className="relative w-7 h-7 rounded-full transition-all hover:scale-110"
                 style={{
                   backgroundColor: c.hex || 'rgba(255,255,255,0.1)',
-                  border: draft.color === c.hex ? '2px solid #22d3ee' : '2px solid rgba(255,255,255,0.1)',
-                  boxShadow: draft.color === c.hex && c.hex ? `0 0 10px ${c.hex}` : 'none',
+                  border: draft.color === c.hex ? '2px solid #07d963' : '2px solid rgba(255,255,255,0.1)',
+                  boxShadow: draft.color === c.hex && c.hex ? `0 0 8px ${c.hex}60` : 'none',
                   transform: draft.color === c.hex ? 'scale(1.15)' : 'scale(1)',
                 }}
               />
@@ -171,10 +169,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
                   onClick={() => update({ priority: selected ? '' : p.value })}
                   className="flex-1 py-1.5 rounded-lg text-sm font-medium transition-all"
                   style={{
-                    background: selected ? p.bg : 'rgba(255,255,255,0.04)',
-                    border: selected ? `1px solid ${p.color}` : '1px solid rgba(255,255,255,0.1)',
-                    color: selected ? p.color : 'rgba(255,255,255,0.45)',
-                    boxShadow: selected ? `0 0 10px ${p.glow}` : 'none',
+                  background: selected ? p.bg : '#242838',
+                  border: selected ? `1px solid ${p.color}` : '1px solid #2b2e3a',
+                  color: selected ? p.color : '#7a7f8c',
                   }}
                 >
                   {p.label}
@@ -191,7 +188,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
                 type="datetime-local"
                 value={draft.dueDate}
                 onChange={e => update({ dueDate: e.target.value })}
-                className={`w-full rounded-lg px-3 py-2 text-sm ${focusStyle}`}
+                className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
                 style={{ ...inputStyle, colorScheme: 'dark' }}
               />
             </div>
@@ -200,7 +197,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
               <select
                 value={draft.alertMinutes}
                 onChange={e => update({ alertMinutes: Number(e.target.value) })}
-                className={`w-full rounded-lg px-3 py-2 text-sm ${focusStyle}`}
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                 style={{ ...inputStyle, colorScheme: 'dark' }}
                 disabled={!draft.dueDate}
               >
@@ -215,7 +212,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
           <div className="flex items-center justify-between">
             <Label>Checklist</Label>
             {totalCount > 0 && (
-              <span className="text-xs mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              <span className="text-xs" style={{ color: '#7a7f8c' }}>
                 {doneCount}/{totalCount} — {progress}%
               </span>
             )}
@@ -228,9 +225,8 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
                 style={{
                   width: `${progress}%`,
                   background: progress === 100
-                    ? 'linear-gradient(90deg, #4ade80, #22d3ee)'
-                    : 'linear-gradient(90deg, #22d3ee, #8b5cf6)',
-                  boxShadow: progress === 100 ? '0 0 8px rgba(74,222,128,0.5)' : '0 0 8px rgba(34,211,238,0.3)',
+                    ? 'linear-gradient(90deg, #4ade80, #07d963)'
+                    : '#07d963',
                 }}
               />
             </div>
@@ -243,7 +239,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
                   type="checkbox"
                   checked={item.done}
                   onChange={() => toggleCheck(item.id)}
-                  className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 accent-cyan-400"
+                  className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 accent-green-400"
                 />
                 <input
                   type="text"
@@ -273,15 +269,15 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
               onChange={e => setNewCheckItem(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addCheckItem(); }}
               placeholder="Novo item..."
-              className={`flex-1 rounded-lg px-3 py-2 text-sm ${focusStyle}`}
+              className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
               style={inputStyle}
             />
             <button
               onClick={addCheckItem}
               className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.2)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.1)')}
+              style={{ background: 'rgba(7,217,99,0.1)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.18)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.1)')}
             >
               + Add
             </button>
@@ -297,7 +293,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
               {draft.comments.map(comment => (
                 <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'rgba(255,255,255,0.04)' }}>
                   <div className="flex justify-between items-start gap-2 mb-1">
-                    <span className="text-xs mono" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    <span className="text-xs" style={{ color: '#7a7f8c' }}>
                       {new Date(comment.createdAt).toLocaleDateString('pt-BR', {
                         day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
                       })}
@@ -326,15 +322,15 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
               onChange={e => setNewComment(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addComment(); }}
               placeholder="Adicionar comentário..."
-              className={`flex-1 rounded-lg px-3 py-2 text-sm ${focusStyle}`}
+              className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
               style={inputStyle}
             />
             <button
               onClick={addComment}
               className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.2)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(34,211,238,0.1)')}
+              style={{ background: 'rgba(7,217,99,0.1)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.18)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.1)')}
             >
               ✓
             </button>
@@ -342,7 +338,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <span className="text-xs mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            <span className="text-xs" style={{ color: '#7a7f8c' }}>
               {new Date(card.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
             <div className="flex gap-2">
@@ -358,7 +354,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
               <button
                 onClick={() => { onSave(draft); onClose(); }}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all"
-                style={{ background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#050b18' }}
+                style={{ background: '#07d963', color: '#0d0f16' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#05c257')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#07d963')}
               >
                 Salvar
               </button>
@@ -371,7 +369,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete }) => {
 };
 
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <span className="text-xs font-semibold mono tracking-widest" style={{ color: 'rgba(34,211,238,0.5)', fontSize: '10px' }}>
+  <span className="text-xs font-medium tracking-widest" style={{ color: '#7a7f8c', fontSize: '10px' }}>
     {String(children).toUpperCase()}
   </span>
 );
