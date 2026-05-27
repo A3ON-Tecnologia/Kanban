@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Board } from '../types';
 import InlineEdit from './InlineEdit';
+import ConfirmModal from './ConfirmModal';
 
 interface Props {
   boards: Board[];
@@ -131,40 +132,13 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
         )}
       </main>
 
-      {/* Delete confirmation dialog */}
       {confirmDelete && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(8px)' }}
-          onClick={() => setConfirmDelete(null)}
-        >
-          <div
-            className="rounded-xl p-6 w-full max-w-sm"
-            style={{ background: '#1b1e2f', border: '1px solid rgba(248,113,113,0.3)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <p className="font-semibold mb-1" style={{ color: '#e2e8f0' }}>Excluir quadro?</p>
-            <p className="text-sm mb-5" style={{ color: '#7a7f8c' }}>
-              Todas as colunas e cartões serão removidos permanentemente.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => { onDelete(confirmDelete); setConfirmDelete(null); }}
-                className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.3)' }}
-              >
-                Excluir
-              </button>
-              <button
-                onClick={() => setConfirmDelete(null)}
-                className="flex-1 py-2 rounded-lg text-sm"
-                style={{ background: '#242838', color: '#7a7f8c' }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          title="Excluir quadro?"
+          detail="Todas as colunas e cartões serão removidos permanentemente."
+          onConfirm={() => { onDelete(confirmDelete); setConfirmDelete(null); }}
+          onCancel={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   );

@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import type { Column, Card } from '../types';
 import KanbanCard from './KanbanCard';
 import InlineEdit from './InlineEdit';
+import ConfirmModal from './ConfirmModal';
 
 interface Props {
   column: Column;
@@ -17,13 +18,14 @@ interface Props {
   onRecolorColumn: (columnId: string, color: string, color2: string) => void;
 }
 
-const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
+const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#facc15', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
 
 const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard, onOpenCard, onRenameColumn, onDeleteColumn, onRecolorColumn }) => {
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const accent = column.color || COLUMN_ACCENT[index % COLUMN_ACCENT.length];
   const accent2 = column.color2 || accent;
@@ -64,7 +66,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
       <div
         className="flex items-center justify-between px-3 py-2.5 gap-2 rounded-t-xl"
         style={{
-          background: `linear-gradient(to right, ${accent}55, ${accent2}30)`,
+          background: `linear-gradient(to right, ${accent}cc, ${accent2}66)`,
           borderBottom: `1px solid ${accent}40`,
         }}
       >
@@ -158,7 +160,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
                 </div>
               )}
               <button
-                onClick={() => { onDeleteColumn(column.id); setShowMenu(false); }}
+                onClick={() => { setConfirmDelete(true); setShowMenu(false); }}
                 className="w-full text-left px-3 py-2 text-sm transition-colors"
                 style={{ color: '#f87171' }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.08)')}
@@ -234,6 +236,15 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
           <span className="text-base leading-none">+</span>
           <span>Adicionar cartão</span>
         </button>
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Excluir coluna?"
+          detail="Todos os cartões desta coluna serão removidos permanentemente."
+          onConfirm={() => { onDeleteColumn(column.id); setConfirmDelete(false); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
       )}
     </div>
   );

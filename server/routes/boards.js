@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
           });
         }
 
-        cols.push({ id: col.id, title: col.title, cards: cardsList });
+        cols.push({ id: col.id, title: col.title, color: col.color || '', color2: col.color2 || '', cards: cardsList });
       }
 
       result.push({ id: board.id, title: board.title, columns: cols });
@@ -97,8 +97,8 @@ router.put('/:id', async (req, res) => {
     for (let ci = 0; ci < board.columns.length; ci++) {
       const col = board.columns[ci];
       await conn.execute(
-        'INSERT INTO columns_tbl (id, board_id, title, position) VALUES (?, ?, ?, ?)',
-        [col.id, id, col.title, ci]
+        'INSERT INTO columns_tbl (id, board_id, title, position, color, color2) VALUES (?, ?, ?, ?, ?, ?)',
+        [col.id, id, col.title, ci, col.color || null, col.color2 || null]
       );
 
       for (let cardI = 0; cardI < col.cards.length; cardI++) {

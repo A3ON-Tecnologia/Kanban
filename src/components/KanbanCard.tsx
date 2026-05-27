@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Card as CardType } from '../types';
+import ConfirmModal from './ConfirmModal';
 
 interface Props {
   card: CardType;
@@ -46,6 +47,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
   });
 
   const [hovered, setHovered] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const colorBar = COLOR_BAR[card.color] || null;
   const priorityDot = card.priority ? PRIORITY_DOT[card.priority] : null;
@@ -60,6 +62,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
     : baseTransform ?? undefined;
 
   return (
+    <>
     <div
       ref={setNodeRef}
       style={{
@@ -92,7 +95,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
             </h3>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-            {card.alertMinutes > 0 && (
+            {card.alertMinutes > 0 && card.dueDate && (
               <span title="Alerta configurado" style={{ width: 7, height: 7, borderRadius: '50%', background: '#fbbf24', display: 'inline-block', flexShrink: 0 }} />
             )}
             {priorityDot && (
@@ -100,7 +103,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
             )}
             {hovered && (
               <button
-                onClick={e => { e.stopPropagation(); onDelete(card.id, columnId); }}
+                onClick={e => { e.stopPropagation(); setConfirmDelete(true); }}
                 className="w-5 h-5 rounded flex items-center justify-center text-xs transition-colors"
                 style={{ color: 'rgba(255,255,255,0.25)' }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; }}
@@ -136,20 +139,32 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, onOpen, onDelete }) => {
         {/* Checklist progress */}
         {totalCount > 0 && (
           <div className="flex items-center gap-2 mt-0.5">
-            <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${(doneCount / totalCount) * 100}%`,
-                  background: doneCount === totalCount ? '#4ade80' : '#07d963',
+                  background: doneCount === totalCount ? '#4ade80' : 'rgba(255,255,255,0.7)',
                 }}
               />
             </div>
-            <span style={{ color: '#7a7f8c', fontSize: '10px' }}>{doneCount}/{totalCount}</span>
+            <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px', fontWeight: 500 }}>{doneCount}/{totalCount}</span>
           </div>
         )}
       </div>
     </div>
+      {confirmDelete && (
+        <ConfirmModal
+          title="Excluir cartão?"
+          detail='Esta ação não pode ser desfeita.'
+          onConfirm={() => { onDelete(card.id, columnId); setConfirmDelete(false); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
+    </>
   );
 };
 

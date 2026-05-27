@@ -37,7 +37,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
   const [newColumnColor, setNewColumnColor] = useState('#22c55e');
   const [newColumnColor2, setNewColumnColor2] = useState('#3b82f6');
 
-  const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
+  const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#facc15', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
