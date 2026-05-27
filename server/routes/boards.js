@@ -9,7 +9,8 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     let boards;
-    if (req.user.role === 'admin') {
+    const mine = req.query.mine === 'true';
+    if (req.user.role === 'admin' && !mine) {
       [boards] = await pool.execute('SELECT * FROM boards ORDER BY created_at');
     } else {
       // Quadros criados pelo usuário OU que ele tem acesso

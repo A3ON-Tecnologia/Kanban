@@ -23,11 +23,14 @@ import InlineEdit from './InlineEdit';
 
 interface Props {
   initialBoard: Board;
+  boards?: Board[];
   onBack?: () => void;
+  onSelectBoard?: (id: string) => void;
   onBoardChange?: (board: Board) => void | Promise<void>;
 }
 
-const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) => {
+const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBoard, onBoardChange }) => {
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const [board, setBoard] = useState<Board>(initialBoard);
   const [activeCard, setActiveCard] = useState<{ card: Card; columnId: string } | null>(null);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
@@ -244,11 +247,11 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
         className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
         style={{ borderBottom: '1px solid #2b2e3a', background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(12px)' }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #2b2e3a', color: '#7a7f8c' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
               onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
@@ -261,7 +264,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
             style={{ background: 'rgba(7,217,99,0.15)', border: '1px solid rgba(7,217,99,0.25)' }}>
             <span className="text-sm font-bold" style={{ color: '#07d963' }}>K</span>
           </div>
-          <div>
+          <div className="flex-shrink-0">
             <InlineEdit
               value={board.title}
               onSave={v => persist({ ...board, title: v })}
@@ -274,6 +277,76 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
               {totalCards} {totalCards === 1 ? 'tarefa' : 'tarefas'} · {board.columns.length} {board.columns.length === 1 ? 'coluna' : 'colunas'}
             </p>
           </div>
+          {/* Board switcher */}
+          {boards && boards.length > 1 && onSelectBoard && (() => {
+            const others = boards.filter(b => b.id !== board.id);
+            const MAX = 4;
+            const visible = others.slice(0, MAX);
+            const overflow = others.slice(MAX);
+            return (
+              <div className="flex items-center gap-1.5 pl-2" style={{ borderLeft: '1px solid #2b2e3a' }}>
+                {visible.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => onSelectBoard(b.id)}
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-all flex-shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #2b2e3a', color: '#a0a5b4', maxWidth: '130px' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#a0a5b4'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
+                    title={b.title}
+                  >
+                    <span className="flex-shrink-0 w-4 h-4 rounded flex items-center justify-center text-xs font-bold"
+                      style={{ background: 'rgba(7,217,99,0.15)', color: '#07d963' }}>
+                      {b.title.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="truncate" style={{ maxWidth: '80px', fontSize: '12px', fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
+                  </button>
+                ))}
+                {overflow.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setSwitcherOpen(o => !o)}
+                      className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm transition-all flex-shrink-0"
+                      style={{ background: switcherOpen ? 'rgba(7,217,99,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${switcherOpen ? 'rgba(7,217,99,0.3)' : '#2b2e3a'}`, color: switcherOpen ? '#07d963' : '#a0a5b4' }}
+                      onMouseEnter={e => { if (!switcherOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#e2e8f0'; } }}
+                      onMouseLeave={e => { if (!switcherOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#a0a5b4'; } }}
+                    >
+                      <span style={{ fontSize: '12px' }}>+{overflow.length}</span>
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" style={{ marginTop: '1px' }}>
+                        <path d="M6 8.5L1.5 4h9L6 8.5z"/>
+                      </svg>
+                    </button>
+                    {switcherOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setSwitcherOpen(false)} />
+                        <div
+                          className="absolute left-0 top-full mt-2 z-50 rounded-xl overflow-hidden"
+                          style={{ background: '#171a27', border: '1px solid #2b2e3a', minWidth: '200px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+                        >
+                          {overflow.map(b => (
+                            <button
+                              key={b.id}
+                              onClick={() => { setSwitcherOpen(false); onSelectBoard(b.id); }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors"
+                              style={{ color: '#e2e8f0' }}
+                              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                            >
+                              <span className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963' }}>
+                                {b.title.charAt(0).toUpperCase()}
+                              </span>
+                              <span className="text-sm truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
         <div className="flex items-center gap-3">
           <button

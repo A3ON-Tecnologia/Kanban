@@ -39,6 +39,12 @@ export async function loadBoards(): Promise<Board[]> {
   return res.json();
 }
 
+export async function loadMyBoards(): Promise<Board[]> {
+  const res = await fetch(`${API_URL}/boards?mine=true`, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`Erro ao carregar meus quadros: ${res.statusText}`);
+  return res.json();
+}
+
 export async function createBoard(board: Board): Promise<void> {
   const res = await fetch(`${API_URL}/boards`, {
     method: 'POST',

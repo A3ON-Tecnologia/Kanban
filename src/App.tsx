@@ -1,7 +1,7 @@
 import './index.css'
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { loadBoards, saveBoard, createBoard as apiCreateBoard, deleteBoard as apiDeleteBoard } from './api'
+import { loadBoards, loadMyBoards, saveBoard, createBoard as apiCreateBoard, deleteBoard as apiDeleteBoard } from './api'
 import type { Board } from './types'
 import KanbanBoard from './components/KanbanBoard'
 import BoardList from './components/BoardList'
@@ -12,6 +12,7 @@ import { useAuth } from './context/AuthContext'
 function App() {
   const { user, loading: authLoading, signOut } = useAuth()
   const [boards, setBoards] = useState<Board[]>([])
+  const [myBoards, setMyBoards] = useState<Board[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -20,8 +21,8 @@ function App() {
   useEffect(() => {
     if (!user) return
     setLoading(true)
-    loadBoards()
-      .then(setBoards)
+    Promise.all([loadBoards(), loadMyBoards()])
+      .then(([all, mine]) => { setBoards(all); setMyBoards(mine); })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [user])
@@ -32,12 +33,14 @@ function App() {
     const newBoard: Board = { id: uuidv4(), title, columns: [] }
     await apiCreateBoard(newBoard)
     setBoards(prev => [...prev, newBoard])
+    setMyBoards(prev => [...prev, newBoard])
     setSelectedId(newBoard.id)
   }
 
   const handleDelete = async (id: string) => {
     await apiDeleteBoard(id)
     setBoards(prev => prev.filter(b => b.id !== id))
+    setMyBoards(prev => prev.filter(b => b.id !== id))
   }
 
   const handleRename = async (id: string, title: string) => {
@@ -45,11 +48,13 @@ function App() {
     const board = updated.find(b => b.id === id)!
     await saveBoard(board)
     setBoards(updated)
+    setMyBoards(prev => prev.map(b => b.id === id ? { ...b, title } : b))
   }
 
   const handleBoardChange = async (board: Board) => {
     await saveBoard(board)
     setBoards(prev => prev.map(b => b.id === board.id ? board : b))
+    setMyBoards(prev => prev.map(b => b.id === board.id ? board : b))
   }
 
   // Aguardando verificação do token
@@ -104,7 +109,9 @@ function App() {
     return (
       <KanbanBoard
         initialBoard={selectedBoard}
+        boards={myBoards}
         onBack={() => setSelectedId(null)}
+        onSelectBoard={setSelectedId}
         onBoardChange={handleBoardChange}
       />
     )
