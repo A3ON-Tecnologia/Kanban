@@ -39,6 +39,11 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  // Sync initialBoard prop to board state
+  React.useEffect(() => {
+    setBoard(initialBoard);
+  }, [initialBoard]);
+
   const persist = useCallback((b: Board) => {
     setBoard(b);
     saveBoard(b);
@@ -220,31 +225,24 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
   const totalCards = board.columns.reduce((acc, c) => acc + c.cards.length, 0);
 
   return (
-    <div className="min-h-screen flex flex-col grid-bg" style={{ background: 'linear-gradient(135deg, #050b18 0%, #0a0f2e 50%, #050b18 100%)' }}>
-      {/* Ambient orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #22d3ee, transparent 70%)' }} />
-        <div className="absolute bottom-[-20%] right-[-10%] w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #8b5cf6, transparent 70%)' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5" style={{ background: 'radial-gradient(circle, #3b82f6, transparent 70%)' }} />
-      </div>
-
+    <div className="min-h-screen flex flex-col" style={{ background: '#0f1117' }}>
       {/* Header */}
-      <header className="relative z-10 px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(99,179,237,0.1)' }}>
+      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#0f1117' }}>
         <div className="flex items-center gap-4">
           {onBack && (
             <button
               onClick={onBack}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#22d3ee'; e.currentTarget.style.borderColor = 'rgba(34,211,238,0.4)'; }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
               title="Voltar aos quadros"
             >
               ←
             </button>
           )}
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center animate-pulse-glow" style={{ background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', boxShadow: '0 0 20px rgba(34,211,238,0.4)' }}>
-            <span className="text-white text-sm font-bold">K</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#1e2333', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span className="text-sm font-bold" style={{ color: 'rgba(226,232,240,0.8)' }}>K</span>
           </div>
           <InlineEdit
             value={board.title}
@@ -256,15 +254,15 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-4">
-            <Stat label="COLUNAS" value={board.columns.length} color="#22d3ee" />
+            <Stat label="COLUNAS" value={board.columns.length} color="rgba(148,163,184,0.7)" />
             <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.08)' }} />
-            <Stat label="CARTÕES" value={totalCards} color="#8b5cf6" />
+            <Stat label="CARTÕES" value={totalCards} color="rgba(148,163,184,0.7)" />
           </div>
         </div>
       </header>
 
       {/* Board */}
-      <main className="relative z-10 flex-1 px-8 py-6 overflow-x-auto">
+      <main className="flex-1 px-8 py-6 overflow-x-auto">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -276,11 +274,12 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
             items={board.columns.map(c => c.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex gap-5 items-start min-w-max pb-4">
-              {board.columns.map((col: Column) => (
+            <div className="flex gap-4 items-start min-w-max pb-4">
+              {board.columns.map((col: Column, colIndex: number) => (
                 <KanbanColumn
                   key={col.id}
                   column={col}
+                  index={colIndex}
                   onAddCard={addCard}
                   onDeleteCard={deleteCard}
                   onOpenCard={(cardId, columnId) => setModalState({ cardId, columnId })}
@@ -291,7 +290,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
 
               {/* Add column */}
               {addingColumn ? (
-                <div className="flex-shrink-0 w-72 glass rounded-2xl p-4 flex flex-col gap-3 animate-slide-in" style={{ border: '1px solid rgba(34,211,238,0.3)' }}>
+                <div className="flex-shrink-0 w-72 rounded-xl p-4 flex flex-col gap-3" style={{ background: '#131720', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <input
                     autoFocus
                     value={newColumnTitle}
@@ -302,20 +301,20 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
                     }}
                     placeholder="Nome da coluna..."
                     className="w-full rounded-lg px-3 py-2 text-sm outline-none text-white placeholder-white/30 mono"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(34,211,238,0.3)' }}
+                    style={{ background: '#1e2333', border: '1px solid rgba(255,255,255,0.12)' }}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={addColumn}
-                      className="flex-1 text-sm py-1.5 rounded-lg font-semibold transition-all"
-                      style={{ background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#050b18' }}
+                      className="flex-1 text-sm py-1.5 rounded-lg font-semibold transition-colors"
+                      style={{ background: '#3b82f6', color: '#fff' }}
                     >
                       Criar
                     </button>
                     <button
                       onClick={() => { setAddingColumn(false); setNewColumnTitle(''); }}
                       className="text-sm px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'rgba(148,163,184,0.5)' }}
                     >
                       ✕
                     </button>
@@ -324,15 +323,13 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
               ) : (
                 <button
                   onClick={() => setAddingColumn(true)}
-                  className="flex-shrink-0 w-72 glass rounded-2xl py-4 px-5 flex items-center gap-3 transition-all group"
-                  style={{ border: '1px dashed rgba(99,179,237,0.2)' }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(34,211,238,0.5)')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(99,179,237,0.2)')}
+                  className="flex-shrink-0 w-72 py-4 px-5 flex items-center gap-3 transition-all rounded-xl"
+                  style={{ border: '1px dashed rgba(255,255,255,0.1)', color: 'rgba(148,163,184,0.4)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.22)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(148,163,184,0.75)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.02)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(148,163,184,0.4)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
                 >
-                  <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)' }}>
-                    <span className="text-cyan-400 text-sm leading-none">+</span>
-                  </div>
-                  <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Nova coluna</span>
+                  <span className="text-base leading-none">+</span>
+                  <span className="text-sm font-medium">Nova coluna</span>
                 </button>
               )}
             </div>
@@ -340,7 +337,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) =
 
           <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
             {activeCard && (
-              <div className="rotate-2 scale-105" style={{ filter: 'drop-shadow(0 0 20px rgba(34,211,238,0.3))' }}>
+              <div className="rotate-1 scale-103 opacity-90">
                 <KanbanCard
                   card={activeCard.card}
                   columnId={activeCard.columnId}
