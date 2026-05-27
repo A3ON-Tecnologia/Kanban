@@ -5,9 +5,9 @@ import InlineEdit from './InlineEdit';
 interface Props {
   boards: Board[];
   onSelect: (id: string) => void;
-  onCreate: (title: string) => void;
-  onDelete: (id: string) => void;
-  onRename: (id: string, title: string) => void;
+  onCreate: (title: string) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
+  onRename: (id: string, title: string) => void | Promise<void>;
 }
 
 const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename }) => {

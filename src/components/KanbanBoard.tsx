@@ -24,7 +24,7 @@ import InlineEdit from './InlineEdit';
 interface Props {
   initialBoard: Board;
   onBack?: () => void;
-  onBoardChange?: (board: Board) => void;
+  onBoardChange?: (board: Board) => void | Promise<void>;
 }
 
 const KanbanBoard: React.FC<Props> = ({ initialBoard, onBack, onBoardChange }) => {
