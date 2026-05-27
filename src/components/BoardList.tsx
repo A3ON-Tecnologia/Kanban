@@ -149,11 +149,13 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {boards.map(board => {
               const totalCards = board.columns.reduce((acc, c) => acc + c.cards.length, 0);
+              const canDelete = user?.role === 'admin' || board.createdBy === user?.id;
               return (
                 <BoardCard
                   key={board.id}
                   board={board}
                   totalCards={totalCards}
+                  canDelete={canDelete}
                   onSelect={() => onSelect(board.id)}
                   onRename={title => onRename(board.id, title)}
                   onDelete={() => setConfirmDelete(board.id)}
@@ -179,6 +181,7 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
 interface BoardCardProps {
   board: Board;
   totalCards: number;
+  canDelete: boolean;
   onSelect: () => void;
   onRename: (title: string) => void;
   onDelete: () => void;
@@ -186,7 +189,7 @@ interface BoardCardProps {
 
 const BOARD_ACCENTS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'];
 
-const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, onSelect, onRename, onDelete }) => {
+const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, canDelete, onSelect, onRename, onDelete }) => {
   const [hovered, setHovered] = useState(false);
   const accent = BOARD_ACCENTS[Math.abs(board.id.charCodeAt(0) + (board.id.charCodeAt(4) || 0)) % BOARD_ACCENTS.length];
 
@@ -219,10 +222,10 @@ const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, onSelect, onRe
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDelete(); }}
-            className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs transition-all opacity-0 group-hover:opacity-100"
-            style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+            className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs transition-all"
+            style={{ color: canDelete ? 'rgba(255,255,255,0.3)' : 'transparent', background: 'rgba(255,255,255,0.05)', visibility: canDelete ? 'visible' : 'hidden' }}
+            onMouseEnter={e => { if (canDelete) { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; } }}
+            onMouseLeave={e => { if (canDelete) { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
           >
             ✕
           </button>

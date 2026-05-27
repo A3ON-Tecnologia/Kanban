@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
         cols.push({ id: col.id, title: col.title, color: col.color || '', color2: col.color2 || '', cards: cardsList });
       }
 
-      result.push({ id: board.id, title: board.title, columns: cols });
+      result.push({ id: board.id, title: board.title, createdBy: board.created_by || null, columns: cols });
     }
 
     res.json(result);
@@ -162,6 +162,12 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/boards/:id — exclui um quadro
 router.delete('/:id', async (req, res) => {
   try {
+    const [rows] = await pool.execute('SELECT created_by FROM boards WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Quadro não encontrado' });
+    const board = rows[0];
+    if (req.user.role !== 'admin' && board.created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Sem permissão para excluir este quadro' });
+    }
     await pool.execute('DELETE FROM boards WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (err) {

@@ -30,7 +30,7 @@ function App() {
   const selectedBoard = boards.find(b => b.id === selectedId) ?? null
 
   const handleCreate = async (title: string) => {
-    const newBoard: Board = { id: uuidv4(), title, columns: [] }
+    const newBoard: Board = { id: uuidv4(), title, columns: [], createdBy: user?.id }
     await apiCreateBoard(newBoard)
     setBoards(prev => [...prev, newBoard])
     setMyBoards(prev => [...prev, newBoard])

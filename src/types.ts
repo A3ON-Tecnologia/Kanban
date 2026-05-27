@@ -37,4 +37,5 @@ export interface Board {
   id: string;
   title: string;
   columns: Column[];
+  createdBy?: string;
 }
