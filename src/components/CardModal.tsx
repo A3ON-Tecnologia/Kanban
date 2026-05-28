@@ -101,307 +101,307 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
         style={{ background: 'var(--overlay)', backdropFilter: 'blur(8px)' }}
         onClick={e => { if (e.target === e.currentTarget) { onSave(draft); onClose(); } }}
       >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col rounded-xl"
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border)',
-          boxShadow: 'var(--shadow-modal)',
-        }}
-      >
-        {/* Accent top bar */}
-        {draft.color && (
-          <div className="h-0.5 rounded-t-xl" style={{ background: `linear-gradient(90deg, ${draft.color}, transparent 70%)` }} />
-        )}
-
-        <div className="p-5 flex flex-col gap-4">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <textarea
-              value={draft.title}
-              onChange={e => update({ title: e.target.value })}
-              className="flex-1 text-base font-semibold resize-none rounded-lg px-2 py-1 outline-none"
-              style={{ ...inputStyle, border: '1px solid transparent', background: 'transparent', color: 'var(--text-primary)' }}
-              rows={2}
-              placeholder="Título do cartão"
-            />
-            <button
-              onClick={() => { onSave(draft); onClose(); }}
-              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all"
-              style={{ color: 'var(--text-muted)', background: 'var(--glass-bg)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Label */}
-
-          <div className="flex items-center justify-between">
-            <Label>Descrição</Label>
-            <button
-              type="button"
-              onClick={() => setDescMaximized(m => !m)}
-              className="text-xs px-2 py-1 rounded transition-all"
-              style={{ color: 'var(--accent)', background: 'var(--accent-faint)', border: '1px solid var(--accent-border)' }}
-              title={descMaximized ? 'Minimizar descrição' : 'Maximizar descrição'}
-            >
-              {descMaximized ? 'Minimizar' : 'Maximizar'}
-            </button>
-          </div>
-          <textarea
-            value={draft.description}
-            onChange={e => update({ description: e.target.value })}
-            className="w-full rounded-lg p-3 text-sm outline-none"
-            style={{
-              ...inputStyle,
-              minHeight: descMaximized ? 180 : 64,
-              maxHeight: descMaximized ? 400 : 120,
-              resize: descMaximized ? 'vertical' : 'none',
-              transition: 'max-height 0.2s',
-            }}
-            rows={descMaximized ? 10 : 3}
-            placeholder="Adicione uma descrição detalhada..."
-          />
-
-          {/* Color picker */}
-          <Label>Cor de destaque</Label>
-          <div className="flex flex-wrap gap-2">
-            {COLORS.map(c => (
-              <button
-                key={c.hex}
-                title={c.label}
-                onClick={() => update({ color: c.hex })}
-                className="relative w-7 h-7 rounded-full transition-all hover:scale-110"
-                style={{
-                  backgroundColor: c.hex || 'var(--glass-md)',
-                  border: draft.color === c.hex ? '2px solid var(--accent)' : '2px solid var(--glass-md)',
-                  boxShadow: draft.color === c.hex && c.hex ? `0 0 8px ${c.hex}60` : 'none',
-                  transform: draft.color === c.hex ? 'scale(1.15)' : 'scale(1)',
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Priority */}
-          <Label>Prioridade</Label>
-          <div className="flex gap-2">
-            {PRIORITIES.map(p => {
-              const selected = draft.priority === p.value;
-              return (
-                <button
-                  key={p.value}
-                  onClick={() => update({ priority: selected ? '' : p.value })}
-                  className="flex-1 py-1.5 rounded-lg text-sm font-medium transition-all"
-                  style={{
-                  background: selected ? p.bg : 'var(--bg-input)',
-                  border: selected ? `1px solid ${p.color}` : '1px solid var(--border)',
-                  color: selected ? p.color : 'var(--text-muted)',
-                  }}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Due date + alert */}
-          <div className="flex gap-3">
-            <div className="flex-1 flex flex-col gap-1.5">
-              <Label>📅 Vencimento</Label>
-              <input
-                type="datetime-local"
-                value={draft.dueDate}
-                onChange={e => update({ dueDate: e.target.value })}
-                className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ ...inputStyle, colorScheme: 'dark' }}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5" style={{ minWidth: '130px' }}>
-              <Label>🔔 Avisar (min antes)</Label>
-              <select
-                value={draft.alertMinutes}
-                onChange={e => update({ alertMinutes: Number(e.target.value) })}
-                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ ...inputStyle, colorScheme: 'var(--color-scheme)' }}
-                disabled={!draft.dueDate}
-              >
-                {ALERT_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Checklist */}
-          <div className="flex items-center justify-between">
-            <Label>Checklist</Label>
-            {totalCount > 0 && (
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {doneCount}/{totalCount} — {progress}%
-              </span>
-            )}
-          </div>
-
-          {totalCount > 0 && (
-            <div className="h-1 rounded-full overflow-hidden -mt-3" style={{ background: 'var(--track-bg)' }}>
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${progress}%`,
-                  background: progress === 100
-                    ? 'linear-gradient(90deg, #4ade80, #07d963)'
-                    : '#07d963',
-                }}
-              />
-            </div>
+        <div
+          className="w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col rounded-xl"
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-modal)',
+          }}
+        >
+          {/* Accent top bar */}
+          {draft.color && (
+            <div className="h-0.5 rounded-t-xl" style={{ background: `linear-gradient(90deg, ${draft.color}, transparent 70%)` }} />
           )}
+          <div className="p-5 flex flex-col gap-4">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <textarea
+                value={draft.title}
+                onChange={e => update({ title: e.target.value })}
+                className="flex-1 text-base font-semibold resize-none rounded-lg px-2 py-1 outline-none"
+                style={{ ...inputStyle, border: '1px solid transparent', background: 'transparent', color: 'var(--text-primary)' }}
+                rows={2}
+                placeholder="Título do cartão"
+              />
+              <button
+                onClick={() => { onSave(draft); onClose(); }}
+                className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all"
+                style={{ color: 'var(--text-muted)', background: 'var(--glass-bg)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+              >
+                ✕
+              </button>
+            </div>
 
-          <div className="flex flex-col gap-1.5">
-            {draft.checklist.map((item: ChecklistItem) => (
-              <div key={item.id} className="flex items-center gap-2.5 group py-1 px-2 rounded-lg transition-colors" style={{ background: 'var(--row-bg)' }}>
-                <input
-                  type="checkbox"
-                  checked={item.done}
-                  onChange={() => toggleCheck(item.id)}
-                  className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 accent-green-400"
-                />
-                <input
-                  type="text"
-                  value={item.text}
-                  onChange={e => updateCheckText(item.id, e.target.value)}
-                  className="flex-1 text-sm bg-transparent outline-none transition-colors"
-                  style={{
-                    color: item.done ? 'var(--text-faint)' : 'var(--text-body)',
-                    textDecoration: item.done ? 'line-through' : 'none',
-                  }}
-                />
-                {boards && boards.length > 0 && onSendToBoard && (
+            {/* Top: Descrição + Comentários lado a lado */}
+            <div className="flex flex-row gap-6 w-full">
+              {/* Descrição */}
+              <div className="flex-1 flex flex-col gap-2 min-w-[260px]">
+                <div className="flex items-center justify-between">
+                  <Label>Descrição</Label>
                   <button
-                    onClick={() => { setSendItem(item); setSendBoardId(''); setSendColId(''); }}
-                    className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
-                    style={{ color: '#60a5fa' }}
-                    title="Criar cartão em outro quadro"
+                    type="button"
+                    onClick={() => setDescMaximized(m => !m)}
+                    className="text-xs px-2 py-1 rounded transition-all"
+                    style={{ color: 'var(--accent)', background: 'var(--accent-faint)', border: '1px solid var(--accent-border)' }}
+                    title={descMaximized ? 'Minimizar descrição' : 'Maximizar descrição'}
                   >
-                    ↗
+                    {descMaximized ? 'Minimizar' : 'Maximizar'}
                   </button>
-                )}
-                <button
-                  onClick={() => deleteCheck(item.id)}
-                  className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
-                  style={{ color: '#f87171' }}
-                >
-                  ✕
-                </button>
+                </div>
+                <textarea
+                  value={draft.description}
+                  onChange={e => update({ description: e.target.value })}
+                  className="w-full rounded-lg p-3 text-sm outline-none"
+                  style={{
+                    ...inputStyle,
+                    minHeight: descMaximized ? 180 : 64,
+                    maxHeight: descMaximized ? 400 : 120,
+                    resize: descMaximized ? 'vertical' : 'none',
+                    transition: 'max-height 0.2s',
+                  }}
+                  rows={descMaximized ? 10 : 3}
+                  placeholder="Adicione uma descrição detalhada..."
+                />
               </div>
-            ))}
-          </div>
+              {/* Comentários */}
+              <div className="flex-1 flex flex-col gap-2 min-w-[260px] max-w-[340px]">
+                <Label>💬 Comentários ({draft.comments.length})</Label>
+                {draft.comments.length > 0 && (
+                  <div className="flex flex-col gap-2 max-h-32 overflow-y-auto">
+                    {draft.comments.map(comment => (
+                      <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'var(--row-bg)' }}>
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            {new Date(comment.createdAt).toLocaleDateString('pt-BR', {
+                              day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                          <button
+                            onClick={() => deleteComment(comment.id)}
+                            className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center"
+                            style={{ color: 'rgba(248,113,113,0.6)' }}
+                            title="Deletar comentário"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p className="text-xs leading-snug" style={{ color: 'var(--text-body)' }}>
+                          {comment.text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') addComment(); }}
+                    placeholder="Adicionar comentário..."
+                    className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                    style={inputStyle}
+                  />
+                  <button
+                    onClick={addComment}
+                    className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                    style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
+                  >
+                    ✓
+                  </button>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newCheckItem}
-              onChange={e => setNewCheckItem(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') addCheckItem(); }}
-              placeholder="Novo item..."
-              className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
-              style={inputStyle}
-            />
-            <button
-              onClick={addCheckItem}
-              className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
-            >
-              + Add
-            </button>
-          </div>
+            {/* Restante dos campos abaixo */}
+            <div className="mt-6 flex flex-col gap-4">
+              {/* Color picker */}
+              <Label>Cor de destaque</Label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map(c => (
+                  <button
+                    key={c.hex}
+                    title={c.label}
+                    onClick={() => update({ color: c.hex })}
+                    className="relative w-7 h-7 rounded-full transition-all hover:scale-110"
+                    style={{
+                      backgroundColor: c.hex || 'var(--glass-md)',
+                      border: draft.color === c.hex ? '2px solid var(--accent)' : '2px solid var(--glass-md)',
+                      boxShadow: draft.color === c.hex && c.hex ? `0 0 8px ${c.hex}60` : 'none',
+                      transform: draft.color === c.hex ? 'scale(1.15)' : 'scale(1)',
+                    }}
+                  />
+                ))}
+              </div>
 
-          {/* Comentários */}
-          <div>
-            <Label>💬 Comentários ({draft.comments.length})</Label>
-          </div>
-
-          {draft.comments.length > 0 && (
-            <div className="flex flex-col gap-2 max-h-32 overflow-y-auto">
-              {draft.comments.map(comment => (
-                <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'var(--row-bg)' }}>
-                  <div className="flex justify-between items-start gap-2 mb-1">
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(comment.createdAt).toLocaleDateString('pt-BR', {
-                        day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
-                      })}
-                    </span>
+              {/* Priority */}
+              <Label>Prioridade</Label>
+              <div className="flex gap-2">
+                {PRIORITIES.map(p => {
+                  const selected = draft.priority === p.value;
+                  return (
                     <button
-                      onClick={() => deleteComment(comment.id)}
-                      className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center"
-                      style={{ color: 'rgba(248,113,113,0.6)' }}
-                      title="Deletar comentário"
+                      key={p.value}
+                      onClick={() => update({ priority: selected ? '' : p.value })}
+                      className="flex-1 py-1.5 rounded-lg text-sm font-medium transition-all"
+                      style={{
+                        background: selected ? p.bg : 'var(--bg-input)',
+                        border: selected ? `1px solid ${p.color}` : '1px solid var(--border)',
+                        color: selected ? p.color : 'var(--text-muted)',
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Due date + alert */}
+              <div className="flex gap-3">
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <Label>📅 Vencimento</Label>
+                  <input
+                    type="datetime-local"
+                    value={draft.dueDate}
+                    onChange={e => update({ dueDate: e.target.value })}
+                    className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                    style={{ ...inputStyle, colorScheme: 'dark' }}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5" style={{ minWidth: '130px' }}>
+                  <Label>🔔 Avisar (min antes)</Label>
+                  <select
+                    value={draft.alertMinutes}
+                    onChange={e => update({ alertMinutes: Number(e.target.value) })}
+                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                    style={{ ...inputStyle, colorScheme: 'var(--color-scheme)' }}
+                    disabled={!draft.dueDate}
+                  >
+                    {ALERT_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Checklist */}
+              <div className="flex items-center justify-between">
+                <Label>Checklist</Label>
+                {totalCount > 0 && (
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {doneCount}/{totalCount} — {progress}%
+                  </span>
+                )}
+              </div>
+              {totalCount > 0 && (
+                <div className="h-1 rounded-full overflow-hidden -mt-3" style={{ background: 'var(--track-bg)' }}>
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${progress}%`,
+                      background: progress === 100
+                        ? 'linear-gradient(90deg, #4ade80, #07d963)'
+                        : '#07d963',
+                    }}
+                  />
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                {draft.checklist.map((item: ChecklistItem) => (
+                  <div key={item.id} className="flex items-center gap-2.5 group py-1 px-2 rounded-lg transition-colors" style={{ background: 'var(--row-bg)' }}>
+                    <input
+                      type="checkbox"
+                      checked={item.done}
+                      onChange={() => toggleCheck(item.id)}
+                      className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 accent-green-400"
+                    />
+                    <input
+                      type="text"
+                      value={item.text}
+                      onChange={e => updateCheckText(item.id, e.target.value)}
+                      className="flex-1 text-sm bg-transparent outline-none transition-colors"
+                      style={{
+                        color: item.done ? 'var(--text-faint)' : 'var(--text-body)',
+                        textDecoration: item.done ? 'line-through' : 'none',
+                      }}
+                    />
+                    {boards && boards.length > 0 && onSendToBoard && (
+                      <button
+                        onClick={() => { setSendItem(item); setSendBoardId(''); setSendColId(''); }}
+                        className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
+                        style={{ color: '#60a5fa' }}
+                        title="Criar cartão em outro quadro"
+                      >
+                        ↗
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteCheck(item.id)}
+                      className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
+                      style={{ color: '#f87171' }}
                     >
                       ✕
                     </button>
                   </div>
-                  <p className="text-xs leading-snug" style={{ color: 'var(--text-body)' }}>
-                    {comment.text}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCheckItem}
+                  onChange={e => setNewCheckItem(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') addCheckItem(); }}
+                  placeholder="Novo item..."
+                  className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                  style={inputStyle}
+                />
+                <button
+                  onClick={addCheckItem}
+                  className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                  style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
+                >
+                  + Add
+                </button>
+              </div>
             </div>
-          )}
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newComment}
-              onChange={e => setNewComment(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') addComment(); }}
-              placeholder="Adicionar comentário..."
-              className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
-              style={inputStyle}
-            />
-            <button
-              onClick={addComment}
-              className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
-            >
-              ✓
-            </button>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--track-bg)' }}>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {new Date(card.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </span>
-            <div className="flex gap-2">
-              {(!card.createdBy || card.createdBy === currentUserId) && (
-              <button
-                onClick={() => { onDelete(); onClose(); }}
-                className="text-sm px-3 py-1.5 rounded-lg transition-all"
-                style={{ color: '#f87171', background: 'transparent' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.1)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                Excluir
-              </button>
-              )}
-              <button
-                onClick={() => { onSave(draft); onClose(); }}
-                className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all"
-                style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
-              >
-                Salvar
-              </button>
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-3 mt-2" style={{ borderTop: '1px solid var(--track-bg)' }}>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {new Date(card.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+              <div className="flex gap-2">
+                {(!card.createdBy || card.createdBy === currentUserId) && (
+                  <button
+                    onClick={() => { onDelete(); onClose(); }}
+                    className="text-sm px-3 py-1.5 rounded-lg transition-all"
+                    style={{ color: '#f87171', background: 'transparent' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.1)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    Excluir
+                  </button>
+                )}
+                <button
+                  onClick={() => { onSave(draft); onClose(); }}
+                  className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all"
+                  style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
+                >
+                  Salvar
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Mini-modal: enviar item para outro quadro */}
@@ -410,10 +410,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           <div className="rounded-2xl p-5 w-full max-w-sm mx-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-modal)' }}>
             <p className="text-xs font-medium tracking-widest mb-1" style={{ color: 'var(--text-muted)', fontSize: '10px' }}>CRIAR CARTÃO EM</p>
             <p className="text-sm font-medium mb-4 truncate" style={{ color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>"{sendItem.text}"</p>
-
             {/* Seletor de quadro */}
             <div className="mb-3">
-                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Quadro</p>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Quadro</p>
               <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
                 {boards.map(b => (
                   <button
@@ -427,7 +426,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     }}
                   >
                     <span className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: 'var(--accent-badge)', color: 'var(--accent)' }}>
+                      style={{ background: 'var(--accent-badge)', color: 'var(--accent)' }}>
                       {b.title.charAt(0).toUpperCase()}
                     </span>
                     <span className="truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
@@ -435,7 +434,6 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                 ))}
               </div>
             </div>
-
             {/* Seletor de coluna — aparece após escolher quadro */}
             {sendBoardId && (() => {
               const targetBoard = boards.find(b => b.id === sendBoardId);
@@ -464,7 +462,6 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                 </div>
               );
             })()}
-
             <div className="flex gap-2 mt-2">
               <button
                 onClick={() => {
