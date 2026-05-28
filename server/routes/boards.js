@@ -98,13 +98,18 @@ router.put('/:id', async (req, res) => {
   const board = req.body;
   const conn = await pool.getConnection();
 
+  // LOG: dados recebidos
+  console.log('--- PUT /api/boards/:id ---');
+  console.log('Board ID:', id);
+  console.log('Payload:', JSON.stringify(board, null, 2));
+
   try {
     await conn.beginTransaction();
 
     // Upsert do quadro
     await conn.execute(
-      'INSERT INTO boards (id, title) VALUES (?, ?) ON DUPLICATE KEY UPDATE title = ?',
-      [id, board.title, board.title]
+      'INSERT INTO boards (id, title, created_by) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE title = ?, created_by = ?',
+      [id, board.title, req.user.id, board.title, req.user.id]
     );
 
     // Apaga colunas antigas (cascata apaga cards e checklist)
@@ -113,6 +118,7 @@ router.put('/:id', async (req, res) => {
     // Reinsere tudo
     for (let ci = 0; ci < board.columns.length; ci++) {
       const col = board.columns[ci];
+      console.log(`  Inserindo coluna: ${col.id} - ${col.title}`);
       await conn.execute(
         'INSERT INTO columns_tbl (id, board_id, title, position, color, color2) VALUES (?, ?, ?, ?, ?, ?)',
         [col.id, id, col.title, ci, col.color || null, col.color2 || null]
@@ -120,6 +126,7 @@ router.put('/:id', async (req, res) => {
 
       for (let cardI = 0; cardI < col.cards.length; cardI++) {
         const card = col.cards[cardI];
+        console.log(`    Inserindo card: ${card.id} - ${card.title}`);
         await conn.execute(
           `INSERT INTO cards
             (id, column_id, title, description, color, priority, due_date, alert_minutes, position, created_at, created_by)
@@ -135,6 +142,7 @@ router.put('/:id', async (req, res) => {
 
         for (let itemI = 0; itemI < card.checklist.length; itemI++) {
           const item = card.checklist[itemI];
+          console.log(`      Inserindo checklist: ${item.id} - ${item.text}`);
           await conn.execute(
             'INSERT INTO checklist_items (id, card_id, text, done, position) VALUES (?, ?, ?, ?, ?)',
             [item.id, card.id, item.text, item.done ? 1 : 0, itemI]
@@ -142,6 +150,7 @@ router.put('/:id', async (req, res) => {
         }
 
         for (const comment of card.comments || []) {
+          console.log(`      Inserindo comentário: ${comment.id}`);
           await conn.execute(
             'INSERT INTO comments (id, card_id, text, created_at) VALUES (?, ?, ?, ?)',
             [comment.id, card.id, comment.text, comment.createdAt]
@@ -151,6 +160,7 @@ router.put('/:id', async (req, res) => {
     }
 
     await conn.commit();
+    console.log('--- FIM PUT /api/boards/:id ---');
     res.json({ success: true });
   } catch (err) {
     await conn.rollback();

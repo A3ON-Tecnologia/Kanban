@@ -15,7 +15,6 @@ import {
 } from '@dnd-kit/sortable';
 import { v4 as uuidv4 } from 'uuid';
 import type { Board, Card, Column } from '../types';
-import { saveBoard } from '../storage';
 import { saveBoard as saveBoardAPI } from '../api';
 import KanbanColumn from './KanbanColumn';
 import KanbanCard from './KanbanCard';
@@ -54,9 +53,9 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     setBoard(initialBoard);
   }, [initialBoard]);
 
-  const persist = useCallback((b: Board) => {
+  const persist = useCallback(async (b: Board) => {
     setBoard(b);
-    saveBoard(b);
+    await saveBoardAPI(b);
     onBoardChange?.(b);
   }, [onBoardChange]);
 
