@@ -85,7 +85,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
     >
       <div className="p-4 flex flex-col gap-2.5">
         {/* Header: title + priority dot */}
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-1">
           {/* Drag handle */}
           <div
             {...attributes}
@@ -109,7 +109,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
             </span>
           </div>
           <div className="flex-1 min-w-0" onClick={() => onOpen(card.id, columnId)}>
-            <h3 className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="text-xs font-semibold leading-tight line-clamp-1" style={{ color: 'var(--text-primary)' }}>
               {card.title}
             </h3>
           </div>
@@ -137,7 +137,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
 
         {/* Description */}
         {card.description && (
-          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-xs leading-relaxed line-clamp-3" style={{ color: 'var(--text-muted)' }}>
             {card.description}
           </p>
         )}
@@ -157,7 +157,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
 
         {/* Checklist progress */}
         {totalCount > 0 && (
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-1 mt-0.5">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
             </svg>

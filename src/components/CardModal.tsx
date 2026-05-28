@@ -42,6 +42,7 @@ const COLORS = [
 
 const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard, currentUserId }) => {
   const [draft, setDraft] = useState<Card>({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
+  const [descMaximized, setDescMaximized] = useState(false);
   const [newCheckItem, setNewCheckItem] = useState('');
   const [newComment, setNewComment] = useState('');
   const [sendItem, setSendItem] = useState<ChecklistItem | null>(null);
@@ -136,13 +137,31 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           </div>
 
           {/* Label */}
-          <Label>Descrição</Label>
+
+          <div className="flex items-center justify-between">
+            <Label>Descrição</Label>
+            <button
+              type="button"
+              onClick={() => setDescMaximized(m => !m)}
+              className="text-xs px-2 py-1 rounded transition-all"
+              style={{ color: 'var(--accent)', background: 'var(--accent-faint)', border: '1px solid var(--accent-border)' }}
+              title={descMaximized ? 'Minimizar descrição' : 'Maximizar descrição'}
+            >
+              {descMaximized ? 'Minimizar' : 'Maximizar'}
+            </button>
+          </div>
           <textarea
             value={draft.description}
             onChange={e => update({ description: e.target.value })}
-            className="w-full rounded-lg p-3 text-sm resize-none outline-none"
-            style={{ ...inputStyle }}
-            rows={3}
+            className="w-full rounded-lg p-3 text-sm outline-none"
+            style={{
+              ...inputStyle,
+              minHeight: descMaximized ? 180 : 64,
+              maxHeight: descMaximized ? 400 : 120,
+              resize: descMaximized ? 'vertical' : 'none',
+              transition: 'max-height 0.2s',
+            }}
+            rows={descMaximized ? 10 : 3}
             placeholder="Adicione uma descrição detalhada..."
           />
 
