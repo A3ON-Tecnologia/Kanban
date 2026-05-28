@@ -3,6 +3,7 @@ import type { Board } from '../types';
 import type { UserRecord } from '../api';
 import { listUsers, createUser, updateUser, deleteUser, getUserBoards, setUserBoards } from '../api';
 import ConfirmModal from './ConfirmModal';
+import { ThemeToggle } from '../context/ThemeContext';
 
 interface Props {
   boards: Board[];
@@ -96,39 +97,42 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0d0f16' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid #2b2e3a', background: 'rgba(13,15,22,0.9)', backdropFilter: 'blur(12px)' }}>
+        style={{ borderBottom: '1px solid var(--border)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ color: '#7a7f8c', border: '1px solid #2b2e3a' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#e2e8f0')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#7a7f8c')}>
+            style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
             ←
           </button>
           <div>
-            <h1 className="font-semibold" style={{ fontSize: 17, color: '#e2e8f0' }}>Gerenciar Usuários</h1>
-            <p style={{ fontSize: 11.5, color: '#7a7f8c', marginTop: 1 }}>{users.length} {users.length === 1 ? 'usuário' : 'usuários'}</p>
+            <h1 className="font-semibold" style={{ fontSize: 17, color: 'var(--text-primary)' }}>Gerenciar Usuários</h1>
+            <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>{users.length} {users.length === 1 ? 'usuário' : 'usuários'}</p>
           </div>
         </div>
-        <button onClick={openCreate}
-          className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5"
-          style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.2)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.12)')}>
-          <span className="text-base leading-none">+</span> Novo usuário
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={openCreate}
+            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5"
+            style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-subtle)')}>
+            <span className="text-base leading-none">+</span> Novo usuário
+          </button>
+          <ThemeToggle />
+        </div>
       </header>
 
       <main className="flex-1 px-6 py-6 max-w-3xl w-full mx-auto">
         {loading ? (
-          <p style={{ color: '#7a7f8c' }}>Carregando...</p>
+          <p style={{ color: 'var(--text-muted)' }}>Carregando...</p>
         ) : (
           <div className="flex flex-col gap-2">
             {users.map(u => (
               <div key={u.id} className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                style={{ background: '#171a27', border: '1px solid #2b2e3a' }}>
+                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                 {/* Avatar */}
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                   style={{ background: u.role === 'admin' ? 'rgba(7,217,99,0.15)' : 'rgba(59,130,246,0.15)',
@@ -136,7 +140,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
                   {u.username[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium" style={{ color: '#e2e8f0' }}>{u.username}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{u.username}</p>
                   <span className="text-xs px-1.5 py-0.5 rounded"
                     style={{ background: u.role === 'admin' ? 'rgba(7,217,99,0.1)' : 'rgba(59,130,246,0.1)',
                       color: u.role === 'admin' ? '#07d963' : '#60a5fa' }}>
@@ -147,23 +151,23 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
                   {u.role !== 'admin' && (
                     <button onClick={() => openPerms(u)}
                       className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-                      style={{ color: '#7a7f8c', border: '1px solid #2b2e3a' }}
-                      onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}>
-                      Permissões
-                    </button>
+                    style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
+                    Permissões
+                  </button>
                   )}
                   <button onClick={() => openEdit(u)}
                     className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-                    style={{ color: '#7a7f8c', border: '1px solid #2b2e3a' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}>
+                    style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
                     Editar
                   </button>
                   <button onClick={() => setConfirmDelete(u)}
                     className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-                    style={{ color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.08)')}
+                    style={{ color: '#f87171', border: '1px solid var(--danger-border-sm)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--danger-hover)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                     Excluir
                   </button>
@@ -177,10 +181,10 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
       {/* Create/Edit form modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'var(--overlay-dark)', backdropFilter: 'blur(8px)' }}
           onClick={() => setShowForm(false)}>
           <form className="rounded-xl p-6 w-full max-w-sm flex flex-col gap-4"
-            style={{ background: '#1b1e2f', border: '1px solid #2b2e3a' }}
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
             onClick={e => e.stopPropagation()}
             onSubmit={handleFormSubmit}>
             <p className="font-semibold" style={{ color: '#e2e8f0' }}>
@@ -188,37 +192,37 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
             </p>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs" style={{ color: '#7a7f8c' }}>Usuário</label>
+              <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Usuário</label>
               <input value={formUsername} onChange={e => setFormUsername(e.target.value)}
                 placeholder="Nome de usuário" autoFocus
                 className="rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ background: '#242838', border: '1px solid #2b2e3a', color: '#e2e8f0' }}
-                onFocus={e => (e.currentTarget.style.borderColor = 'rgba(7,217,99,0.5)')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#2b2e3a')} />
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs" style={{ color: '#7a7f8c' }}>
+              <label className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 Senha {editUser && <span style={{ opacity: 0.5 }}>(deixe em branco para manter)</span>}
               </label>
               <input type="password" value={formPassword} onChange={e => setFormPassword(e.target.value)}
                 placeholder={editUser ? 'Nova senha (opcional)' : 'Senha'}
                 className="rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ background: '#242838', border: '1px solid #2b2e3a', color: '#e2e8f0' }}
-                onFocus={e => (e.currentTarget.style.borderColor = 'rgba(7,217,99,0.5)')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#2b2e3a')} />
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs" style={{ color: '#7a7f8c' }}>Perfil</label>
+              <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Perfil</label>
               <div className="flex gap-2">
                 {(['user', 'admin'] as const).map(r => (
                   <button type="button" key={r} onClick={() => setFormRole(r)}
                     className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
                     style={{
-                      background: formRole === r ? (r === 'admin' ? 'rgba(7,217,99,0.15)' : 'rgba(59,130,246,0.15)') : '#242838',
-                      color: formRole === r ? (r === 'admin' ? '#07d963' : '#60a5fa') : '#7a7f8c',
-                      border: `1px solid ${formRole === r ? (r === 'admin' ? 'rgba(7,217,99,0.3)' : 'rgba(59,130,246,0.3)') : '#2b2e3a'}`,
+                      background: formRole === r ? (r === 'admin' ? 'var(--accent-badge)' : 'rgba(59,130,246,0.15)') : 'var(--bg-input)',
+                      color: formRole === r ? (r === 'admin' ? 'var(--accent)' : '#60a5fa') : 'var(--text-muted)',
+                      border: `1px solid ${formRole === r ? (r === 'admin' ? 'var(--accent-glow)' : 'rgba(59,130,246,0.3)') : 'var(--border)'}`,
                     }}>
                     {ROLE_LABEL[r]}
                   </button>
@@ -228,7 +232,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
 
             {formError && (
               <p className="text-xs px-3 py-2 rounded-lg"
-                style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}>
+                style={{ background: 'var(--danger-faint)', color: '#f87171', border: '1px solid var(--danger-border-sm)' }}>
                 {formError}
               </p>
             )}
@@ -236,12 +240,12 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
             <div className="flex gap-2 mt-1">
               <button type="submit" disabled={formLoading || !formUsername || (!editUser && !formPassword)}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                style={{ background: '#07d963', color: '#0d0f16', opacity: formLoading ? 0.6 : 1 }}>
+                style={{ background: 'var(--accent)', color: 'var(--text-on-accent)', opacity: formLoading ? 0.6 : 1 }}>
                 {formLoading ? 'Salvando...' : editUser ? 'Salvar' : 'Criar'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
                 className="flex-1 py-2 rounded-lg text-sm"
-                style={{ background: '#242838', color: '#7a7f8c' }}>
+                style={{ background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
                 Cancelar
               </button>
             </div>
@@ -252,22 +256,22 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
       {/* Permissions modal */}
       {permUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'var(--overlay-dark)', backdropFilter: 'blur(8px)' }}
           onClick={() => setPermUser(null)}>
           <div className="rounded-xl p-6 w-full max-w-sm flex flex-col gap-4"
-            style={{ background: '#1b1e2f', border: '1px solid #2b2e3a' }}
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
             onClick={e => e.stopPropagation()}>
             <div>
-              <p className="font-semibold" style={{ color: '#e2e8f0' }}>Permissões de acesso</p>
-              <p className="text-sm mt-0.5" style={{ color: '#7a7f8c' }}>
-                Quadros visíveis para <strong style={{ color: '#e2e8f0' }}>{permUser.username}</strong>
+              <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Permissões de acesso</p>
+              <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                Quadros visíveis para <strong style={{ color: 'var(--text-primary)' }}>{permUser.username}</strong>
               </p>
             </div>
 
             {permLoading ? (
-              <p className="text-sm" style={{ color: '#7a7f8c' }}>Carregando...</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Carregando...</p>
             ) : boards.length === 0 ? (
-              <p className="text-sm" style={{ color: '#7a7f8c' }}>Nenhum quadro criado ainda.</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Nenhum quadro criado ainda.</p>
             ) : (
               <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
                 {boards.map(b => {
@@ -277,11 +281,11 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
                       style={{ background: checked ? 'rgba(7,217,99,0.07)' : '#242838',
                         border: `1px solid ${checked ? 'rgba(7,217,99,0.2)' : '#2b2e3a'}` }}>
                       <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
-                        style={{ background: checked ? '#07d963' : 'transparent', border: `1.5px solid ${checked ? '#07d963' : '#3a3f52'}` }}>
-                        {checked && <span style={{ color: '#0d0f16', fontSize: 10, fontWeight: 700 }}>✓</span>}
+                        style={{ background: checked ? 'var(--accent)' : 'transparent', border: `1.5px solid ${checked ? 'var(--accent)' : 'var(--border-hover)'}` }}>
+                        {checked && <span style={{ color: 'var(--text-on-accent)', fontSize: 10, fontWeight: 700 }}>✓</span>}
                       </div>
                       <input type="checkbox" className="hidden" checked={checked} onChange={() => toggleBoard(b.id)} />
-                      <span className="text-sm" style={{ color: checked ? '#e2e8f0' : '#7a7f8c' }}>{b.title}</span>
+                      <span className="text-sm" style={{ color: checked ? 'var(--text-primary)' : 'var(--text-muted)' }}>{b.title}</span>
                     </label>
                   );
                 })}
@@ -291,12 +295,12 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
             <div className="flex gap-2">
               <button onClick={savePerms} disabled={permLoading}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                style={{ background: '#07d963', color: '#0d0f16' }}>
+                style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}>
                 Salvar
               </button>
               <button onClick={() => setPermUser(null)}
                 className="flex-1 py-2 rounded-lg text-sm"
-                style={{ background: '#242838', color: '#7a7f8c' }}>
+                style={{ background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
                 Cancelar
               </button>
             </div>

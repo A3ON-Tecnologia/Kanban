@@ -3,6 +3,7 @@ import type { Board } from '../types';
 import type { AuthUser } from '../api';
 import InlineEdit from './InlineEdit';
 import ConfirmModal from './ConfirmModal';
+import { ThemeToggle } from '../context/ThemeContext';
 
 interface Props {
   boards: Board[];
@@ -29,25 +30,25 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0d0f16' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <header
         className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid #2b2e3a', background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(12px)' }}
+        style={{ borderBottom: '1px solid var(--border)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(7,217,99,0.15)', border: '1px solid rgba(7,217,99,0.25)' }}>
-            <span className="text-sm font-bold" style={{ color: '#07d963' }}>K</span>
+            style={{ background: 'var(--accent-badge)', border: '1px solid var(--accent-badge-border)' }}>
+            <span className="text-sm font-bold" style={{ color: 'var(--accent)' }}>K</span>
           </div>
           <div>
             <h1
               className="font-semibold leading-tight"
-              style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: '#e2e8f0' }}
+              style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: 'var(--text-primary)' }}
             >
               Meus Quadros
             </h1>
-            <p style={{ fontSize: '11.5px', color: '#7a7f8c', marginTop: '1px' }}>
+            <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
               {boards.length} {boards.length === 1 ? 'quadro' : 'quadros'}
             </p>
           </div>
@@ -67,22 +68,23 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
           <button
             onClick={() => setCreating(true)}
             className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
-            style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.2)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.12)'; }}
+            style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-subtle)'; }}
           >
             <span className="text-base leading-none font-light">+</span>
             Novo quadro
           </button>
+          <ThemeToggle />
           {user && onSignOut && (
-            <div className="flex items-center gap-2 pl-2" style={{ borderLeft: '1px solid #2b2e3a' }}>
-              <span className="text-xs" style={{ color: '#7a7f8c' }}>{user.username}</span>
+            <div className="flex items-center gap-2 pl-2" style={{ borderLeft: '1px solid var(--border)' }}>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{user.username}</span>
               <button
                 onClick={onSignOut}
                 className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-                style={{ color: '#7a7f8c', border: '1px solid #2b2e3a' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
+                style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'var(--danger-border)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                 title="Sair"
               >
                 Sair
@@ -96,8 +98,8 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
       <main className="flex-1 px-6 py-6">
         {/* Create board form */}
         {creating && (
-          <div className="mb-6 p-4 rounded-xl" style={{ background: '#1b1e2f', border: '1px solid rgba(7,217,99,0.3)', maxWidth: '380px' }}>
-            <p className="text-xs mb-3" style={{ color: '#07d963', letterSpacing: '0.08em' }}>NOVO QUADRO</p>
+          <div className="mb-6 p-4 rounded-xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--accent-glow)', maxWidth: '380px' }}>
+            <p className="text-xs mb-3" style={{ color: 'var(--accent)', letterSpacing: '0.08em' }}>NOVO QUADRO</p>
             <input
               autoFocus
               value={newTitle}
@@ -108,20 +110,20 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
               }}
               placeholder="Nome do quadro..."
               className="w-full rounded-lg px-3 py-2 text-sm outline-none mb-3"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #2b2e3a', color: '#e2e8f0' }}
+              style={{ background: 'var(--glass-bg)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
             <div className="flex gap-2">
               <button
                 onClick={handleCreate}
                 className="flex-1 text-xs py-1.5 rounded-md font-semibold"
-                style={{ background: '#07d963', color: '#0d0f16' }}
+                style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
               >
                 Criar
               </button>
               <button
                 onClick={() => { setCreating(false); setNewTitle(''); }}
                 className="flex-1 text-xs py-1.5 rounded-md"
-                style={{ background: '#242838', color: '#7a7f8c' }}
+                style={{ background: 'var(--bg-input)', color: 'var(--text-muted)' }}
               >
                 Cancelar
               </button>
@@ -133,14 +135,14 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
         {boards.length === 0 && !creating ? (
           <div className="flex flex-col items-center justify-center h-64 gap-4">
             <div className="w-14 h-14 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(7,217,99,0.05)', border: '1px dashed rgba(7,217,99,0.2)' }}>
+              style={{ background: 'var(--accent-ghost)', border: '1px dashed var(--accent-border)' }}>
               <span className="text-2xl opacity-40">🗂</span>
             </div>
-            <p className="text-sm" style={{ color: '#7a7f8c' }}>Nenhum quadro criado ainda</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Nenhum quadro criado ainda</p>
             <button
               onClick={() => setCreating(true)}
               className="text-sm px-4 py-2 rounded-lg"
-              style={{ color: '#07d963', border: '1px solid rgba(7,217,99,0.25)', background: 'rgba(7,217,99,0.05)' }}
+              style={{ color: 'var(--accent)', border: '1px solid var(--accent-border)', background: 'var(--accent-ghost)' }}
             >
               Criar primeiro quadro
             </button>
@@ -197,8 +199,8 @@ const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, canDelete, onS
     <div
       className="relative rounded-xl overflow-hidden cursor-pointer"
       style={{
-        background: '#171a27',
-        border: hovered ? `1px solid ${accent}55` : '1px solid #2b2e3a',
+        background: 'var(--bg-surface)',
+        border: hovered ? `1px solid ${accent}55` : '1px solid var(--border)',
         borderLeft: `3px solid ${accent}`,
         transition: 'border-color 0.15s ease, transform 0.15s ease',
         transform: hovered ? 'translateY(-2px)' : 'none',
@@ -215,17 +217,16 @@ const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, canDelete, onS
               value={board.title}
               onSave={onRename}
               className="text-base font-semibold"
-              inputClassName="text-white placeholder-white/30"
               tag="h2"
-              textColor="#e2e8f0"
+              textColor="var(--text-primary)"
             />
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDelete(); }}
             className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs transition-all"
-            style={{ color: canDelete ? 'rgba(255,255,255,0.3)' : 'transparent', background: 'rgba(255,255,255,0.05)', visibility: canDelete ? 'visible' : 'hidden' }}
-            onMouseEnter={e => { if (canDelete) { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; } }}
-            onMouseLeave={e => { if (canDelete) { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
+            style={{ color: canDelete ? 'var(--text-faint)' : 'transparent', background: 'var(--glass-bg)', visibility: canDelete ? 'visible' : 'hidden' }}
+            onMouseEnter={e => { if (canDelete) { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'var(--danger-subtle)'; } }}
+            onMouseLeave={e => { if (canDelete) { e.currentTarget.style.color = 'var(--text-faint)'; e.currentTarget.style.background = 'var(--glass-bg)'; } }}
           >
             ✕
           </button>
@@ -238,20 +239,20 @@ const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, canDelete, onS
               <span
                 key={col.id}
                 className="text-xs px-2 py-0.5 rounded-md"
-                style={{ background: '#242838', color: '#7a7f8c', fontSize: '10.5px', border: '1px solid #2b2e3a' }}
+                style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', fontSize: '10.5px', border: '1px solid var(--border)' }}
               >
                 {col.title}
               </span>
             ))}
             {board.columns.length > 4 && (
-              <span className="text-xs px-2 py-0.5 rounded-md" style={{ color: '#7a7f8c', fontSize: '10.5px' }}>
+              <span className="text-xs px-2 py-0.5 rounded-md" style={{ color: 'var(--text-muted)', fontSize: '10.5px' }}>
                 +{board.columns.length - 4}
               </span>
             )}
           </div>
         ) : (
           <div className="mb-4">
-            <span className="text-xs" style={{ color: '#7a7f8c', fontSize: '11px' }}>Sem colunas</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Sem colunas</span>
           </div>
         )}
 
@@ -259,19 +260,19 @@ const BoardCard: React.FC<BoardCardProps> = ({ board, totalCards, canDelete, onS
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex flex-col gap-0.5">
-              <span style={{ color: '#7a7f8c', fontSize: '9px', letterSpacing: '0.08em' }}>COLUNAS</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '9px', letterSpacing: '0.08em' }}>COLUNAS</span>
               <span className="text-base font-bold leading-none" style={{ color: accent }}>{board.columns.length}</span>
             </div>
-            <div className="w-px h-5" style={{ background: '#2b2e3a' }} />
+            <div className="w-px h-5" style={{ background: 'var(--border)' }} />
             <div className="flex flex-col gap-0.5">
-              <span style={{ color: '#7a7f8c', fontSize: '9px', letterSpacing: '0.08em' }}>CARTÕES</span>
-              <span className="text-base font-bold leading-none" style={{ color: '#e2e8f0' }}>{totalCards}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '9px', letterSpacing: '0.08em' }}>CARTÕES</span>
+              <span className="text-base font-bold leading-none" style={{ color: 'var(--text-primary)' }}>{totalCards}</span>
             </div>
           </div>
           <span
             className="text-xs px-3 py-1.5 rounded-lg font-medium"
             style={{
-              color: hovered ? '#0d0f16' : accent,
+              color: hovered ? 'var(--text-on-accent)' : accent,
               background: hovered ? accent : `${accent}18`,
               border: `1px solid ${accent}40`,
               transition: 'all 0.15s ease',

@@ -70,12 +70,12 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
       style={{
         transform: cardTransform,
         transition: isDragging ? 'none' : transition,
-        background: '#171a27',
-        border: `1px solid ${isDragging ? 'rgba(7,217,99,0.5)' : hovered ? 'rgba(7,217,99,0.35)' : '#2b2e3a'}`,
-        borderLeft: colorBar ? `3px solid ${colorBar}` : `3px solid ${isDragging ? 'rgba(7,217,99,0.5)' : '#2b2e3a'}`,
+        background: 'var(--bg-surface)',
+        border: `1px solid ${isDragging ? 'var(--accent-focus)' : hovered ? 'var(--accent-glow-hover)' : 'var(--border)'}`,
+        borderLeft: colorBar ? `3px solid ${colorBar}` : `3px solid ${isDragging ? 'var(--accent-focus)' : 'var(--border)'}`,
         boxShadow: isDragging
-          ? '0 0 20px rgba(7,217,99,0.25), 0 8px 30px rgba(0,0,0,0.6)'
-          : hovered ? '0 4px 20px rgba(0,0,0,0.45)' : '0 1px 4px rgba(0,0,0,0.35)',
+          ? '0 0 20px var(--accent-glow), var(--shadow-modal)'
+          : hovered ? 'var(--shadow-hover)' : 'var(--shadow-card)',
         opacity: isDragging ? 0.9 : 1,
       }}
       className="rounded-xl cursor-pointer select-none overflow-hidden"
@@ -86,13 +86,30 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
       <div className="p-4 flex flex-col gap-2.5">
         {/* Header: title + priority dot */}
         <div className="flex items-start justify-between gap-2">
+          {/* Drag handle */}
           <div
             {...attributes}
             {...listeners}
-            className="flex-1 min-w-0 cursor-grab active:cursor-grabbing"
-            onClick={() => onOpen(card.id, columnId)}
+            className="flex flex-col justify-center items-center mr-2 cursor-grab active:cursor-grabbing select-none px-0.5 py-1 rounded opacity-40 hover:opacity-80 transition-opacity"
+            style={{ touchAction: 'none' }}
+            title="Arrastar cartão"
+            onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: '#e2e8f0' }}>
+            <span style={{ display: 'flex', gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#888', display: 'block' }} />
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#888', display: 'block' }} />
+            </span>
+            <span style={{ display: 'flex', gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#888', display: 'block' }} />
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#888', display: 'block' }} />
+            </span>
+            <span style={{ display: 'flex', gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#888', display: 'block' }} />
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#888', display: 'block' }} />
+            </span>
+          </div>
+          <div className="flex-1 min-w-0" onClick={() => onOpen(card.id, columnId)}>
+            <h3 className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
               {card.title}
             </h3>
           </div>
@@ -107,9 +124,9 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
               <button
                 onClick={e => { e.stopPropagation(); setConfirmDelete(true); }}
                 className="w-5 h-5 rounded flex items-center justify-center text-xs transition-colors"
-                style={{ color: 'rgba(255,255,255,0.25)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = 'transparent'; }}
+                style={{ color: 'var(--text-faint)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'var(--danger-subtle)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-faint)'; e.currentTarget.style.background = 'transparent'; }}
                 title="Excluir cartão"
               >
                 ✕
@@ -120,7 +137,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
 
         {/* Description */}
         {card.description && (
-          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#7a7f8c' }}>
+          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--text-muted)' }}>
             {card.description}
           </p>
         )}
@@ -129,22 +146,22 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
         {due && (
           <div className="flex items-center gap-1" style={{ color: due.overdue ? '#f87171' : '#7a7f8c' }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-              stroke={due.overdue ? '#f87171' : '#7a7f8c'}
+              stroke={due.overdue ? '#f87171' : 'var(--text-muted)'}
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             >
               <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
             </svg>
-            <span style={{ fontSize: '11px' }}>{due.text}</span>
+            <span style={{ fontSize: '11px', color: due.overdue ? '#f87171' : 'var(--text-muted)' }}>{due.text}</span>
           </div>
         )}
 
         {/* Checklist progress */}
         {totalCount > 0 && (
           <div className="flex items-center gap-2 mt-0.5">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
             </svg>
-            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: `${accentColor}99` }}>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: `${accentColor}66` }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -153,7 +170,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
                 }}
               />
             </div>
-            <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px', fontWeight: 500 }}>{doneCount}/{totalCount}</span>
+            <span style={{ color: 'var(--text-body)', fontSize: '10px', fontWeight: 500 }}>{doneCount}/{totalCount}</span>
           </div>
         )}
       </div>

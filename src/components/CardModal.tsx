@@ -87,25 +87,25 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
   const inputStyle = {
-    background: '#242838',
-    border: '1px solid #2b2e3a',
-    color: '#e2e8f0',
+    background: 'var(--bg-input)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
     outline: 'none',
   };
 
   return (
     <>
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
-      onClick={e => { if (e.target === e.currentTarget) { onSave(draft); onClose(); } }}
-    >
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'var(--overlay)', backdropFilter: 'blur(8px)' }}
+        onClick={e => { if (e.target === e.currentTarget) { onSave(draft); onClose(); } }}
+      >
       <div
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col rounded-xl"
         style={{
-          background: '#171a27',
-          border: '1px solid #2b2e3a',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border)',
+          boxShadow: 'var(--shadow-modal)',
         }}
       >
         {/* Accent top bar */}
@@ -120,16 +120,16 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               value={draft.title}
               onChange={e => update({ title: e.target.value })}
               className="flex-1 text-base font-semibold resize-none rounded-lg px-2 py-1 outline-none"
-              style={{ ...inputStyle, border: '1px solid transparent', background: 'transparent', color: '#e2e8f0' }}
+              style={{ ...inputStyle, border: '1px solid transparent', background: 'transparent', color: 'var(--text-primary)' }}
               rows={2}
               placeholder="Título do cartão"
             />
             <button
               onClick={() => { onSave(draft); onClose(); }}
               className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all"
-              style={{ color: '#7a7f8c', background: 'rgba(255,255,255,0.05)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; }}
+              style={{ color: 'var(--text-muted)', background: 'var(--glass-bg)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
               ✕
             </button>
@@ -156,8 +156,8 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                 onClick={() => update({ color: c.hex })}
                 className="relative w-7 h-7 rounded-full transition-all hover:scale-110"
                 style={{
-                  backgroundColor: c.hex || 'rgba(255,255,255,0.1)',
-                  border: draft.color === c.hex ? '2px solid #07d963' : '2px solid rgba(255,255,255,0.1)',
+                  backgroundColor: c.hex || 'var(--glass-md)',
+                  border: draft.color === c.hex ? '2px solid var(--accent)' : '2px solid var(--glass-md)',
                   boxShadow: draft.color === c.hex && c.hex ? `0 0 8px ${c.hex}60` : 'none',
                   transform: draft.color === c.hex ? 'scale(1.15)' : 'scale(1)',
                 }}
@@ -176,9 +176,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                   onClick={() => update({ priority: selected ? '' : p.value })}
                   className="flex-1 py-1.5 rounded-lg text-sm font-medium transition-all"
                   style={{
-                  background: selected ? p.bg : '#242838',
-                  border: selected ? `1px solid ${p.color}` : '1px solid #2b2e3a',
-                  color: selected ? p.color : '#7a7f8c',
+                  background: selected ? p.bg : 'var(--bg-input)',
+                  border: selected ? `1px solid ${p.color}` : '1px solid var(--border)',
+                  color: selected ? p.color : 'var(--text-muted)',
                   }}
                 >
                   {p.label}
@@ -205,7 +205,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                 value={draft.alertMinutes}
                 onChange={e => update({ alertMinutes: Number(e.target.value) })}
                 className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                style={{ ...inputStyle, colorScheme: 'dark' }}
+                style={{ ...inputStyle, colorScheme: 'var(--color-scheme)' }}
                 disabled={!draft.dueDate}
               >
                 {ALERT_OPTIONS.map(o => (
@@ -219,14 +219,14 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           <div className="flex items-center justify-between">
             <Label>Checklist</Label>
             {totalCount > 0 && (
-              <span className="text-xs" style={{ color: '#7a7f8c' }}>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {doneCount}/{totalCount} — {progress}%
               </span>
             )}
           </div>
 
           {totalCount > 0 && (
-            <div className="h-1 rounded-full overflow-hidden -mt-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="h-1 rounded-full overflow-hidden -mt-3" style={{ background: 'var(--track-bg)' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -241,7 +241,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
           <div className="flex flex-col gap-1.5">
             {draft.checklist.map((item: ChecklistItem) => (
-              <div key={item.id} className="flex items-center gap-2.5 group py-1 px-2 rounded-lg transition-colors" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div key={item.id} className="flex items-center gap-2.5 group py-1 px-2 rounded-lg transition-colors" style={{ background: 'var(--row-bg)' }}>
                 <input
                   type="checkbox"
                   checked={item.done}
@@ -254,7 +254,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                   onChange={e => updateCheckText(item.id, e.target.value)}
                   className="flex-1 text-sm bg-transparent outline-none transition-colors"
                   style={{
-                    color: item.done ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.75)',
+                    color: item.done ? 'var(--text-faint)' : 'var(--text-body)',
                     textDecoration: item.done ? 'line-through' : 'none',
                   }}
                 />
@@ -292,9 +292,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
             <button
               onClick={addCheckItem}
               className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: 'rgba(7,217,99,0.1)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.1)')}
+              style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
             >
               + Add
             </button>
@@ -308,9 +308,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           {draft.comments.length > 0 && (
             <div className="flex flex-col gap-2 max-h-32 overflow-y-auto">
               {draft.comments.map(comment => (
-                <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'var(--row-bg)' }}>
                   <div className="flex justify-between items-start gap-2 mb-1">
-                    <span className="text-xs" style={{ color: '#7a7f8c' }}>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       {new Date(comment.createdAt).toLocaleDateString('pt-BR', {
                         day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
                       })}
@@ -324,7 +324,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                       ✕
                     </button>
                   </div>
-                  <p className="text-xs leading-snug" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                  <p className="text-xs leading-snug" style={{ color: 'var(--text-body)' }}>
                     {comment.text}
                   </p>
                 </div>
@@ -345,17 +345,17 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
             <button
               onClick={addComment}
               className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: 'rgba(7,217,99,0.1)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(7,217,99,0.1)')}
+              style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
             >
               ✓
             </button>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <span className="text-xs" style={{ color: '#7a7f8c' }}>
+          <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--track-bg)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {new Date(card.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
             <div className="flex gap-2">
@@ -373,9 +373,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               <button
                 onClick={() => { onSave(draft); onClose(); }}
                 className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all"
-                style={{ background: '#07d963', color: '#0d0f16' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#05c257')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#07d963')}
+                style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
               >
                 Salvar
               </button>
@@ -383,106 +383,106 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           </div>
         </div>
       </div>
-    </div>
+      </div>
 
-    {/* Mini-modal: enviar item para outro quadro */}
-    {sendItem && boards && onSendToBoard && (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
-        <div className="rounded-2xl p-5 w-full max-w-sm mx-4" style={{ background: '#171a27', border: '1px solid #2b2e3a', boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}>
-          <p className="text-xs font-medium tracking-widest mb-1" style={{ color: '#7a7f8c', fontSize: '10px' }}>CRIAR CARTÃO EM</p>
-          <p className="text-sm font-medium mb-4 truncate" style={{ color: '#e2e8f0', fontFamily: "'Playfair Display', serif" }}>"{sendItem.text}"</p>
+      {/* Mini-modal: enviar item para outro quadro */}
+      {sendItem && boards && onSendToBoard && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'var(--overlay)', backdropFilter: 'blur(4px)' }}>
+          <div className="rounded-2xl p-5 w-full max-w-sm mx-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-modal)' }}>
+            <p className="text-xs font-medium tracking-widest mb-1" style={{ color: 'var(--text-muted)', fontSize: '10px' }}>CRIAR CARTÃO EM</p>
+            <p className="text-sm font-medium mb-4 truncate" style={{ color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>"{sendItem.text}"</p>
 
-          {/* Seletor de quadro */}
-          <div className="mb-3">
-            <p className="text-xs mb-2" style={{ color: '#7a7f8c' }}>Quadro</p>
-            <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
-              {boards.map(b => (
-                <button
-                  key={b.id}
-                  onClick={() => { setSendBoardId(b.id); setSendColId(''); }}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all"
-                  style={{
-                    background: sendBoardId === b.id ? 'rgba(7,217,99,0.12)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${sendBoardId === b.id ? 'rgba(7,217,99,0.35)' : '#2b2e3a'}`,
-                    color: sendBoardId === b.id ? '#07d963' : '#a0a5b4',
-                  }}
-                >
-                  <span className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{ background: 'rgba(7,217,99,0.15)', color: '#07d963' }}>
-                    {b.title.charAt(0).toUpperCase()}
-                  </span>
-                  <span className="truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
-                </button>
-              ))}
+            {/* Seletor de quadro */}
+            <div className="mb-3">
+                <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Quadro</p>
+              <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                {boards.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => { setSendBoardId(b.id); setSendColId(''); }}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all"
+                    style={{
+                      background: sendBoardId === b.id ? 'var(--accent-subtle)' : 'var(--row-bg)',
+                      border: `1px solid ${sendBoardId === b.id ? 'var(--accent-glow-hover)' : 'var(--border)'}`,
+                      color: sendBoardId === b.id ? 'var(--accent)' : 'var(--text-subtle)',
+                    }}
+                  >
+                    <span className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{ background: 'var(--accent-badge)', color: 'var(--accent)' }}>
+                      {b.title.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seletor de coluna — aparece após escolher quadro */}
+            {sendBoardId && (() => {
+              const targetBoard = boards.find(b => b.id === sendBoardId);
+              if (!targetBoard || targetBoard.columns.length === 0) return (
+                <p className="text-xs mb-4" style={{ color: '#f87171' }}>Este quadro não possui colunas.</p>
+              );
+              return (
+                <div className="mb-4">
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Coluna</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {targetBoard.columns.map(col => (
+                      <button
+                        key={col.id}
+                        onClick={() => setSendColId(col.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs transition-all"
+                        style={{
+                          background: sendColId === col.id ? (col.color ? `${col.color}22` : 'var(--accent-subtle)') : 'var(--glass-bg)',
+                          border: `1px solid ${sendColId === col.id ? (col.color || 'var(--accent)') + '55' : 'var(--border)'}`,
+                          color: sendColId === col.id ? (col.color || 'var(--accent)') : 'var(--text-subtle)',
+                        }}
+                      >
+                        {col.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => {
+                  if (sendBoardId && sendColId) {
+                    onSendToBoard(card.title, sendItem.text, sendBoardId, sendColId);
+                    setSendItem(null);
+                  }
+                }}
+                disabled={!sendBoardId || !sendColId}
+                className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: sendBoardId && sendColId ? 'var(--accent)' : 'var(--accent-badge)',
+                  color: sendBoardId && sendColId ? 'var(--text-on-accent)' : 'var(--accent)',
+                  cursor: sendBoardId && sendColId ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Criar cartão
+              </button>
+              <button
+                onClick={() => setSendItem(null)}
+                className="flex-1 py-2 rounded-lg text-sm transition-all"
+                style={{ background: 'var(--bg-input)', color: 'var(--text-muted)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--glass-md)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-input)'; }}
+              >
+                Cancelar
+              </button>
             </div>
           </div>
-
-          {/* Seletor de coluna — aparece após escolher quadro */}
-          {sendBoardId && (() => {
-            const targetBoard = boards.find(b => b.id === sendBoardId);
-            if (!targetBoard || targetBoard.columns.length === 0) return (
-              <p className="text-xs mb-4" style={{ color: '#f87171' }}>Este quadro não possui colunas.</p>
-            );
-            return (
-              <div className="mb-4">
-                <p className="text-xs mb-2" style={{ color: '#7a7f8c' }}>Coluna</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {targetBoard.columns.map(col => (
-                    <button
-                      key={col.id}
-                      onClick={() => setSendColId(col.id)}
-                      className="px-3 py-1.5 rounded-lg text-xs transition-all"
-                      style={{
-                        background: sendColId === col.id ? (col.color ? `${col.color}22` : 'rgba(7,217,99,0.12)') : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${sendColId === col.id ? (col.color || '#07d963') + '55' : '#2b2e3a'}`,
-                        color: sendColId === col.id ? (col.color || '#07d963') : '#a0a5b4',
-                      }}
-                    >
-                      {col.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => {
-                if (sendBoardId && sendColId) {
-                  onSendToBoard(card.title, sendItem.text, sendBoardId, sendColId);
-                  setSendItem(null);
-                }
-              }}
-              disabled={!sendBoardId || !sendColId}
-              className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
-              style={{
-                background: sendBoardId && sendColId ? '#07d963' : 'rgba(7,217,99,0.15)',
-                color: sendBoardId && sendColId ? '#0d0f16' : 'rgba(7,217,99,0.4)',
-                cursor: sendBoardId && sendColId ? 'pointer' : 'not-allowed',
-              }}
-            >
-              Criar cartão
-            </button>
-            <button
-              onClick={() => setSendItem(null)}
-              className="flex-1 py-2 rounded-lg text-sm transition-all"
-              style={{ background: '#242838', color: '#7a7f8c' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#2d3248'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#242838'; }}
-            >
-              Cancelar
-            </button>
-          </div>
         </div>
-      </div>
-    )}
+      )}
     </>
   );
 };
 
 const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <span className="text-xs font-medium tracking-widest" style={{ color: '#7a7f8c', fontSize: '10px' }}>
+  <span className="text-xs font-medium tracking-widest" style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
     {String(children).toUpperCase()}
   </span>
 );

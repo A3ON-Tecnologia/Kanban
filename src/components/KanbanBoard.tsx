@@ -21,6 +21,7 @@ import KanbanColumn from './KanbanColumn';
 import KanbanCard from './KanbanCard';
 import CardModal from './CardModal';
 import InlineEdit from './InlineEdit';
+import { ThemeToggle } from '../context/ThemeContext';
 
 interface Props {
   initialBoard: Board;
@@ -269,39 +270,38 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
   const totalCards = board.columns.reduce((acc, c) => acc + c.cards.length, 0);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0d0f16' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <header
         className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid #2b2e3a', background: 'rgba(13,15,22,0.85)', backdropFilter: 'blur(12px)' }}
+        style={{ borderBottom: '1px solid var(--border)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}
       >
         <div className="flex items-center gap-3 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #2b2e3a', color: '#7a7f8c' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = '#7a7f8c'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
+              style={{ background: 'var(--glass-bg)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               title="Voltar aos quadros"
             >
               ←
             </button>
           )}
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(7,217,99,0.15)', border: '1px solid rgba(7,217,99,0.25)' }}>
-            <span className="text-sm font-bold" style={{ color: '#07d963' }}>K</span>
+            style={{ background: 'var(--accent-badge)', border: '1px solid var(--accent-badge-border)' }}>
+            <span className="text-sm font-bold" style={{ color: 'var(--accent)' }}>K</span>
           </div>
           <div className="flex-shrink-0">
             <InlineEdit
               value={board.title}
               onSave={v => persist({ ...board, title: v })}
               className="font-semibold leading-tight"
-              inputClassName="text-white placeholder-white/30"
-              tag="h1"
-              style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: '#e2e8f0' }}
+              inputClassName="" tag="h1"
+              style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: 'var(--text-primary)' }}
             />
-            <p style={{ fontSize: '11.5px', color: '#7a7f8c', marginTop: '1px' }}>
+            <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
               {totalCards} {totalCards === 1 ? 'tarefa' : 'tarefas'} · {board.columns.length} {board.columns.length === 1 ? 'coluna' : 'colunas'}
             </p>
           </div>
@@ -312,19 +312,19 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
             const visible = others.slice(0, MAX);
             const overflow = others.slice(MAX);
             return (
-              <div className="flex items-center gap-1.5 pl-2" style={{ borderLeft: '1px solid #2b2e3a' }}>
+              <div className="flex items-center gap-1.5 pl-2" style={{ borderLeft: '1px solid var(--border)' }}>
                 {visible.map(b => (
                   <button
                     key={b.id}
                     onClick={() => onSelectBoard(b.id)}
                     className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-all flex-shrink-0"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #2b2e3a', color: '#a0a5b4', maxWidth: '130px' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.borderColor = '#3a3f52'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#a0a5b4'; e.currentTarget.style.borderColor = '#2b2e3a'; }}
+                    style={{ background: 'var(--glass-bg)', border: '1px solid var(--border)', color: 'var(--text-subtle)', maxWidth: '130px' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--glass-md)'; e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--glass-bg)'; e.currentTarget.style.color = 'var(--text-subtle)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                     title={b.title}
                   >
                     <span className="flex-shrink-0 w-4 h-4 rounded flex items-center justify-center text-xs font-bold"
-                      style={{ background: 'rgba(7,217,99,0.15)', color: '#07d963' }}>
+                      style={{ background: 'var(--accent-badge)', color: 'var(--accent)' }}>
                       {b.title.charAt(0).toUpperCase()}
                     </span>
                     <span className="truncate" style={{ maxWidth: '80px', fontSize: '12px', fontFamily: "'Playfair Display', serif" }}>{b.title}</span>
@@ -335,9 +335,9 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
                     <button
                       onClick={() => setSwitcherOpen(o => !o)}
                       className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm transition-all flex-shrink-0"
-                      style={{ background: switcherOpen ? 'rgba(7,217,99,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${switcherOpen ? 'rgba(7,217,99,0.3)' : '#2b2e3a'}`, color: switcherOpen ? '#07d963' : '#a0a5b4' }}
-                      onMouseEnter={e => { if (!switcherOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#e2e8f0'; } }}
-                      onMouseLeave={e => { if (!switcherOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#a0a5b4'; } }}
+                      style={{ background: switcherOpen ? 'var(--accent-faint)' : 'var(--glass-bg)', border: `1px solid ${switcherOpen ? 'var(--accent-glow)' : 'var(--border)'}`, color: switcherOpen ? 'var(--accent)' : 'var(--text-subtle)' }}
+                      onMouseEnter={e => { if (!switcherOpen) { e.currentTarget.style.background = 'var(--glass-md)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+                      onMouseLeave={e => { if (!switcherOpen) { e.currentTarget.style.background = 'var(--glass-bg)'; e.currentTarget.style.color = 'var(--text-subtle)'; } }}
                     >
                       <span style={{ fontSize: '12px' }}>+{overflow.length}</span>
                       <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" style={{ marginTop: '1px' }}>
@@ -380,13 +380,14 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
           <button
             onClick={() => setAddingColumn(true)}
             className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
-            style={{ background: 'rgba(7,217,99,0.12)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.2)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(7,217,99,0.12)'; }}
+            style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-subtle)'; }}
           >
             <span className="text-base leading-none font-light">+</span>
             Nova coluna
           </button>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -421,7 +422,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
 
               {/* Add column */}
               {addingColumn && (
-                <div className="flex-shrink-0 w-[300px] rounded-xl p-3 flex flex-col gap-2" style={{ background: '#1b1e2f', border: '1px solid rgba(7,217,99,0.3)' }}>
+                <div className="flex-shrink-0 w-[300px] rounded-xl p-3 flex flex-col gap-2" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--accent-glow)' }}>
                   <input
                     autoFocus
                     value={newColumnTitle}
@@ -432,12 +433,12 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
                     }}
                     placeholder="Nome da coluna..."
                     className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: 'transparent', border: 'none', color: '#e2e8f0' }}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}
                   />
                   {/* Color swatches */}
                   <div className="flex flex-col gap-1.5 px-1">
                     <div className="flex items-center gap-1.5">
-                      <span style={{ fontSize: 10, color: '#7a7f8c', width: 28, flexShrink: 0 }}>Início</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 28, flexShrink: 0 }}>Início</span>
                       {COLUMN_ACCENT.map(c => (
                         <button key={c} onClick={() => setNewColumnColor(c)}
                           className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"
@@ -446,7 +447,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
                       ))}
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span style={{ fontSize: 10, color: '#7a7f8c', width: 28, flexShrink: 0 }}>Fim</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 28, flexShrink: 0 }}>Fim</span>
                       {COLUMN_ACCENT.map(c => (
                         <button key={c} onClick={() => setNewColumnColor2(c)}
                           className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"

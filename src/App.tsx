@@ -60,13 +60,13 @@ function App() {
   // Aguardando verificação do token
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0f16' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-main)' }}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'rgba(7,217,99,0.15)', border: '1px solid rgba(7,217,99,0.25)' }}>
-            <span className="font-bold" style={{ color: '#07d963' }}>K</span>
+            style={{ background: 'var(--accent-badge)', border: '1px solid var(--accent-badge-border)' }}>
+            <span className="font-bold" style={{ color: 'var(--accent)' }}>K</span>
           </div>
-          <p className="text-sm" style={{ color: '#7a7f8c' }}>Carregando...</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Carregando...</p>
         </div>
       </div>
     )
@@ -82,22 +82,22 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0f16' }}>
-        <p className="text-sm" style={{ color: '#7a7f8c' }}>Carregando quadros...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-main)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Carregando quadros...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0d0f16' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-main)' }}>
         <div className="rounded-xl p-8 max-w-md w-full mx-4 text-center"
-          style={{ background: '#171a27', border: '1px solid rgba(248,113,113,0.3)' }}>
-          <p className="text-lg font-semibold mb-2" style={{ color: '#e2e8f0' }}>Erro de conexão</p>
-          <p className="text-sm mb-4" style={{ color: '#7a7f8c' }}>{error}</p>
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--danger-border)' }}>
+          <p className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Erro de conexão</p>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>{error}</p>
           <button onClick={() => { setError(null); setLoading(true); loadBoards().then(setBoards).catch(e => setError(e.message)).finally(() => setLoading(false)) }}
             className="px-4 py-2 rounded-lg text-sm"
-            style={{ background: 'rgba(7,217,99,0.1)', color: '#07d963', border: '1px solid rgba(7,217,99,0.2)' }}>
+            style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>
             Tentar novamente
           </button>
         </div>

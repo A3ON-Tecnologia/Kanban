@@ -58,8 +58,8 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
       ref={setSortableRef}
       style={{
         ...style,
-        background: '#1b1e2f',
-        border: '1px solid #2b2e3a',
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border)',
       }}
       className="flex-shrink-0 w-[300px] flex flex-col rounded-xl"
     >
@@ -101,7 +101,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
           />
           <span
             className="flex-shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.08)', color: '#7a7f8c', fontSize: '10px' }}
+            style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)', fontSize: '10px' }}
           >
             {column.cards.length}
           </span>
@@ -119,13 +119,13 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
           {showMenu && (
             <div
               className="absolute right-0 top-7 rounded-lg z-10 py-1"
-              style={{ background: '#1f2235', border: '1px solid #2b2e3a', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', minWidth: 160 }}
+              style={{ background: 'var(--bg-menu)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-menu)', minWidth: 160 }}
             >
               <button
                 onClick={() => setShowColorPicker(p => !p)}
                 className="w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2"
-                style={{ color: '#e2e8f0' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--row-bg)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <span style={{ width: 12, height: 12, borderRadius: '50%', background: accent, display: 'inline-block', flexShrink: 0 }} />
@@ -134,7 +134,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
               {showColorPicker && (
                 <div className="flex flex-col gap-2 px-3 pb-2 pt-1">
                   <div className="flex flex-col gap-1.5">
-                    <span style={{ fontSize: 10, color: '#7a7f8c' }}>Início</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Início</span>
                     <div className="flex flex-wrap gap-1.5">
                       {COLUMN_ACCENT.map(c => (
                         <button key={c}
@@ -146,7 +146,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <span style={{ fontSize: 10, color: '#7a7f8c' }}>Fim</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Fim</span>
                     <div className="flex flex-wrap gap-1.5">
                       {COLUMN_ACCENT.map(c => (
                         <button key={c}
@@ -204,10 +204,9 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
             }}
             placeholder="Título do cartão..."
             className="w-full rounded-lg p-2.5 text-sm resize-none outline-none"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid #2b2e3a',
-              color: '#e2e8f0',
+              style={{ background: 'var(--glass-bg)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
             }}
             rows={2}
           />
@@ -232,9 +231,9 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
         <button
           onClick={() => setAddingCard(true)}
           className="mx-3 mb-3 flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg transition-all"
-          style={{ color: 'rgba(148,163,184,0.4)', border: '1px dashed #2b2e3a' }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.8)'; e.currentTarget.style.borderColor = 'rgba(7,217,99,0.3)'; e.currentTarget.style.background = 'rgba(7,217,99,0.04)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.4)'; e.currentTarget.style.borderColor = '#2b2e3a'; e.currentTarget.style.background = 'transparent'; }}
+          style={{ color: 'rgba(148,163,184,0.4)', border: '1px dashed var(--border)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.8)'; e.currentTarget.style.borderColor = 'var(--accent-glow)'; e.currentTarget.style.background = 'var(--accent-ghost)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(148,163,184,0.4)'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
         >
           <span className="text-base leading-none">+</span>
           <span>Adicionar cartão</span>

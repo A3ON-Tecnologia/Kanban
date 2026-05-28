@@ -8,7 +8,7 @@ const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8687;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));

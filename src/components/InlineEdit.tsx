@@ -18,7 +18,7 @@ const InlineEdit: React.FC<Props> = ({
   inputClassName = '',
   tag: Tag = 'span',
   placeholder = 'Sem título',
-  textColor = 'rgba(255,255,255,0.9)',
+  textColor = 'var(--text-primary)',
   style,
 }) => {
   const [editing, setEditing] = useState(false);
@@ -55,7 +55,7 @@ const InlineEdit: React.FC<Props> = ({
         onBlur={commit}
         onKeyDown={handleKeyDown}
         className={`w-full resize-none rounded px-1 outline-none text-inherit font-inherit ${inputClassName}`}
-        style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(34,211,238,0.5)', color: textColor }}
+        style={{ background: 'var(--glass-md)', border: '1px solid var(--accent-focus)', color: textColor }}
         rows={2}
       />
     );
