@@ -102,11 +102,13 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
         onClick={e => { if (e.target === e.currentTarget) { onSave(draft); onClose(); } }}
       >
         <div
-          className="w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col rounded-xl"
+          className="w-full max-w-[72rem] max-h-[90vh] overflow-y-auto flex flex-col rounded-xl"
           style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border)',
             boxShadow: 'var(--shadow-modal)',
+            width: '110%', // Força largura extra além do max-w
+            minWidth: '900px',
           }}
         >
           {/* Accent top bar */}
