@@ -13,16 +13,6 @@ interface Props {
   currentUserId?: string;
 }
 
-const COLOR_BAR: Record<string, string> = {
-  '#f87171': '#f87171',
-  '#fb923c': '#fb923c',
-  '#facc15': '#facc15',
-  '#4ade80': '#4ade80',
-  '#60a5fa': '#60a5fa',
-  '#c084fc': '#c084fc',
-  '#f472b6': '#f472b6',
-  '#94a3b8': '#94a3b8',
-};
 
 const PRIORITY_DOT: Record<string, string> = {
   baixa: '#4ade80',
@@ -51,7 +41,6 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
   const [hovered, setHovered] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const colorBar = COLOR_BAR[card.color] || null;
   const priorityDot = card.priority ? PRIORITY_DOT[card.priority] : null;
   const due = card.dueDate ? formatDueDate(card.dueDate) : null;
   const doneCount = card.checklist.filter(i => i.done).length;
@@ -71,17 +60,20 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
         transform: cardTransform,
         transition: isDragging ? 'none' : transition,
         background: 'var(--bg-surface)',
-        border: `1px solid ${isDragging ? 'var(--accent-focus)' : hovered ? 'var(--accent-glow-hover)' : 'var(--border)'}`,
-        borderLeft: colorBar ? `3px solid ${colorBar}` : `3px solid ${isDragging ? 'var(--accent-focus)' : 'var(--border)'}`,
+        borderTop: `1px solid ${isDragging ? 'var(--accent-focus)' : hovered ? 'var(--accent-glow-hover)' : 'var(--border)'}`,
+        borderRight: `1px solid ${isDragging ? 'var(--accent-focus)' : hovered ? 'var(--accent-glow-hover)' : 'var(--border)'}`,
+        borderBottom: `1px solid ${isDragging ? 'var(--accent-focus)' : hovered ? 'var(--accent-glow-hover)' : 'var(--border)'}`,
+        borderLeft: card.color ? `3px solid ${card.color}` : `3px solid ${isDragging ? 'var(--accent-focus)' : 'var(--border)'}`,
         boxShadow: isDragging
           ? '0 0 20px var(--accent-glow), var(--shadow-modal)'
           : hovered ? 'var(--shadow-hover)' : 'var(--shadow-card)',
         opacity: isDragging ? 0.9 : 1,
       }}
-      className="rounded-xl cursor-pointer select-none overflow-hidden"
+      className={`rounded-xl cursor-pointer select-none overflow-hidden${card.color ? ' kanban-card-has-color' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onOpen(card.id, columnId)}
+      data-color={card.color || undefined}
     >
       <div className="p-4 flex flex-col gap-2.5">
         {/* Header: title + priority dot */}

@@ -52,6 +52,11 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
   const [sendBoardId, setSendBoardId] = useState('');
   const [sendColId, setSendColId] = useState('');
 
+  // Sempre sincroniza o draft com o card do backend ao abrir ou quando o card mudar
+  useEffect(() => {
+    setDraft({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
+  }, [card]);
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') { onSave(draft); onClose(); } };
     document.addEventListener('keydown', handleEsc);
