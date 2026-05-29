@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MDEditor, { commands } from '@uiw/react-md-editor';
 import type { Card, ChecklistItem, Priority, Board } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -155,20 +156,30 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     {descMaximized ? 'Minimizar' : 'Maximizar'}
                   </button>
                 </div>
-                <textarea
-                  value={draft.description}
-                  onChange={e => update({ description: e.target.value })}
-                  className="w-full rounded-lg p-3 text-sm outline-none"
-                  style={{
-                    ...inputStyle,
-                    minHeight: descMaximized ? 800 : 420,
-                    maxHeight: descMaximized ? 1600 : 600,
-                    resize: descMaximized ? 'vertical' : 'none',
-                    transition: 'max-height 0.2s',
-                  }}
-                  rows={descMaximized ? 40 : 20}
-                  placeholder="Adicione uma descrição detalhada..."
-                />
+                <div data-color-mode="dark">
+                  <MDEditor
+                    value={draft.description}
+                    onChange={val => update({ description: val || '' })}
+                    height={descMaximized ? 800 : 420}
+                    preview="edit"
+                    commands={[
+                      commands.bold,
+                      commands.orderedListCommand,
+                      commands.unorderedListCommand,
+                    ]}
+                    extraCommands={[]}
+                    visiableDragbar={false}
+                    textareaProps={{
+                      placeholder: 'Adicione uma descrição detalhada...'
+                    }}
+                    style={{
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 8,
+                      color: 'var(--text-primary)',
+                    }}
+                  />
+                </div>
               </div>
               {/* Comentários */}
               <div className="flex-1 flex flex-col gap-2 min-w-[260px] max-w-[340px]">
