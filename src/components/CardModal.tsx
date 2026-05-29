@@ -161,12 +161,12 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                   className="w-full rounded-lg p-3 text-sm outline-none"
                   style={{
                     ...inputStyle,
-                    minHeight: descMaximized ? 340 : 180,
-                    maxHeight: descMaximized ? 600 : 260,
+                    minHeight: descMaximized ? 440 : 260,
+                    maxHeight: descMaximized ? 800 : 340,
                     resize: descMaximized ? 'vertical' : 'none',
                     transition: 'max-height 0.2s',
                   }}
-                  rows={descMaximized ? 18 : 8}
+                  rows={descMaximized ? 24 : 12}
                   placeholder="Adicione uma descrição detalhada..."
                 />
               </div>
