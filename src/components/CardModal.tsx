@@ -224,45 +224,49 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
             {/* Restante dos campos abaixo */}
             <div className="mt-6 flex flex-col gap-4">
-              {/* Color picker */}
-              <Label>Cor de destaque</Label>
-              <div className="flex flex-wrap gap-2">
-                {COLORS.map(c => (
-                  <button
-                    key={c.hex}
-                    title={c.label}
-                    onClick={() => update({ color: c.hex })}
-                    className="relative w-7 h-7 rounded-full transition-all hover:scale-110"
-                    style={{
-                      backgroundColor: c.hex || 'var(--glass-md)',
-                      border: draft.color === c.hex ? '2px solid var(--accent)' : '2px solid var(--glass-md)',
-                      boxShadow: draft.color === c.hex && c.hex ? `0 0 8px ${c.hex}60` : 'none',
-                      transform: draft.color === c.hex ? 'scale(1.15)' : 'scale(1)',
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Priority */}
-              <Label>Prioridade</Label>
-              <div className="flex gap-2">
-                {PRIORITIES.map(p => {
-                  const selected = draft.priority === p.value;
-                  return (
-                    <button
-                      key={p.value}
-                      onClick={() => update({ priority: selected ? '' : p.value })}
-                      className="flex-1 py-1.5 rounded-lg text-sm font-medium transition-all"
-                      style={{
-                        background: selected ? p.bg : 'var(--bg-input)',
-                        border: selected ? `1px solid ${p.color}` : '1px solid var(--border)',
-                        color: selected ? p.color : 'var(--text-muted)',
-                      }}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
+              {/* Cor de destaque + Prioridade lado a lado */}
+              <div className="flex flex-row gap-8 items-end w-full">
+                <div className="flex-1 min-w-[220px]">
+                  <Label>Cor de destaque</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {COLORS.map(c => (
+                      <button
+                        key={c.hex}
+                        title={c.label}
+                        onClick={() => update({ color: c.hex })}
+                        className="relative w-7 h-7 rounded-full transition-all hover:scale-110"
+                        style={{
+                          backgroundColor: c.hex || 'var(--glass-md)',
+                          border: draft.color === c.hex ? '2px solid var(--accent)' : '2px solid var(--glass-md)',
+                          boxShadow: draft.color === c.hex && c.hex ? `0 0 8px ${c.hex}60` : 'none',
+                          transform: draft.color === c.hex ? 'scale(1.15)' : 'scale(1)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-[220px]">
+                  <Label>Prioridade</Label>
+                  <div className="flex gap-2 mt-1">
+                    {PRIORITIES.map(p => {
+                      const selected = draft.priority === p.value;
+                      return (
+                        <button
+                          key={p.value}
+                          onClick={() => update({ priority: selected ? '' : p.value })}
+                          className="flex-1 py-1.5 rounded-lg text-sm font-medium transition-all"
+                          style={{
+                            background: selected ? p.bg : 'var(--bg-input)',
+                            border: selected ? `1px solid ${p.color}` : '1px solid var(--border)',
+                            color: selected ? p.color : 'var(--text-muted)',
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* Due date + alert */}
