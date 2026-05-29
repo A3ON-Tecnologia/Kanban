@@ -224,9 +224,10 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
             {/* Restante dos campos abaixo */}
             <div className="mt-6 flex flex-col gap-4">
-              {/* Cor de destaque + Prioridade lado a lado */}
-              <div className="flex flex-row gap-8 items-end w-full">
-                <div className="flex-1 min-w-[220px]">
+              {/* Cor, Prioridade, Vencimento e Alerta na mesma linha */}
+              <div className="flex flex-row gap-6 w-full items-end flex-wrap">
+                {/* Cor de destaque */}
+                <div className="flex flex-col min-w-[180px] flex-1">
                   <Label>Cor de destaque</Label>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {COLORS.map(c => (
@@ -245,7 +246,8 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     ))}
                   </div>
                 </div>
-                <div className="flex-1 min-w-[220px]">
+                {/* Prioridade */}
+                <div className="flex flex-col min-w-[180px] flex-1">
                   <Label>Prioridade</Label>
                   <div className="flex gap-2 mt-1">
                     {PRIORITIES.map(p => {
@@ -267,26 +269,24 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     })}
                   </div>
                 </div>
-              </div>
-
-              {/* Due date + alert */}
-              <div className="flex gap-3">
-                <div className="flex-1 flex flex-col gap-1.5">
+                {/* Vencimento */}
+                <div className="flex flex-col min-w-[180px] flex-1">
                   <Label>📅 Vencimento</Label>
                   <input
                     type="datetime-local"
                     value={draft.dueDate}
                     onChange={e => update({ dueDate: e.target.value })}
-                    className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                    className="rounded-lg px-3 py-2 text-sm outline-none mt-1"
                     style={{ ...inputStyle, colorScheme: 'dark' }}
                   />
                 </div>
-                <div className="flex flex-col gap-1.5" style={{ minWidth: '130px' }}>
+                {/* Alerta */}
+                <div className="flex flex-col min-w-[140px] flex-1">
                   <Label>🔔 Avisar (min antes)</Label>
                   <select
                     value={draft.alertMinutes}
                     onChange={e => update({ alertMinutes: Number(e.target.value) })}
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                    className="rounded-lg px-3 py-2 text-sm outline-none mt-1"
                     style={{ ...inputStyle, colorScheme: 'var(--color-scheme)' }}
                     disabled={!draft.dueDate}
                   >
