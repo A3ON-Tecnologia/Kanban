@@ -49,7 +49,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
   // Build transform string — add rotate+scale when dragging
   const baseTransform = CSS.Transform.toString(transform);
   const cardTransform = isDragging && baseTransform
-    ? `${baseTransform} rotate(1deg) scale(1.02)`
+    ? `${baseTransform} rotate(1deg)`
     : baseTransform ?? undefined;
 
   return (
