@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import MDEditor, { commands } from '@uiw/react-md-editor';
+import SimpleMDE from 'react-simplemde-editor';
+import 'easymde/dist/easymde.min.css';
+import './simplemde-dark.css';
+
 import type { Card, ChecklistItem, Priority, Board } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -156,30 +159,24 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     {descMaximized ? 'Minimizar' : 'Maximizar'}
                   </button>
                 </div>
-                <div data-color-mode="dark">
-                  <MDEditor
-                    value={draft.description}
-                    onChange={val => update({ description: val || '' })}
-                    height={descMaximized ? 800 : 420}
-                    preview="edit"
-                    commands={[
-                      commands.bold,
-                      commands.orderedListCommand,
-                      commands.unorderedListCommand,
-                    ]}
-                    extraCommands={[]}
-                    visiableDragbar={false}
-                    textareaProps={{
-                      placeholder: 'Adicione uma descrição detalhada...'
-                    }}
-                    style={{
-                      background: 'var(--bg-input)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 8,
-                      color: 'var(--text-primary)',
-                    }}
-                  />
-                </div>
+                <SimpleMDE
+                  value={draft.description}
+                  onChange={val => update({ description: val || '' })}
+                  options={{
+                    spellChecker: false,
+                    toolbar: [
+                      'bold',
+                      'ordered-list',
+                      'unordered-list',
+                      '|',
+                      'preview',
+                    ],
+                    minHeight: descMaximized ? '800px' : '420px',
+                    maxHeight: descMaximized ? '1200px' : '600px',
+                    placeholder: 'Adicione uma descrição detalhada...'
+                  }}
+                  className="rounded-lg border border-solid"
+                />
               </div>
               {/* Comentários */}
               <div className="flex-1 flex flex-col gap-2 min-w-[260px] max-w-[340px]">

@@ -16,6 +16,8 @@
     "@tailwindcss/vite": "^4.3.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-simplemde-editor": "^5.2.0",
+    "simplemde": "^1.11.2",
     "tailwindcss": "^4.3.0",
     "uuid": "^14.0.0"
   },

@@ -1,0 +1,37 @@
+:root[data-theme='dark'] .EasyMDEContainer,
+:root[data-theme='dark'] .editor-toolbar,
+:root[data-theme='dark'] .CodeMirror,
+:root[data-theme='dark'] .editor-statusbar {
+  background: #181c23 !important;
+  color: #e0e6ef !important;
+}
+:root[data-theme='dark'] .editor-toolbar button {
+  color: #e0e6ef !important;
+}
+:root[data-theme='dark'] .editor-toolbar button.active,
+:root[data-theme='dark'] .editor-toolbar button:hover {
+  background: #232a36 !important;
+  color: #fff !important;
+}
+:root[data-theme='dark'] .CodeMirror {
+  background: #181c23 !important;
+  color: #e0e6ef !important;
+}
+:root[data-theme='dark'] .CodeMirror-cursor {
+  border-left: 1px solid #e0e6ef !important;
+}
+:root[data-theme='dark'] .editor-statusbar {
+  background: #181c23 !important;
+  color: #aaa !important;
+}
+:root[data-theme='dark'] .editor-toolbar {
+  border-bottom: 1px solid #232a36 !important;
+}
+:root[data-theme='dark'] .editor-toolbar i.separator {
+  border-left: 1px solid #232a36 !important;
+}
+:root[data-theme='dark'] .editor-preview,
+:root[data-theme='dark'] .editor-preview-active {
+  background: #232a36 !important;
+  color: #e0e6ef !important;
+}
