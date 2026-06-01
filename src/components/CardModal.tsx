@@ -214,8 +214,8 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               <div className="flex-1 flex flex-col gap-2 min-w-[260px] max-w-[340px]">
                 <Label>💬 Comentários ({draft.comments.length})</Label>
                 {draft.comments.length > 0 && (
-                  <div className="flex flex-col gap-2 max-h-32 overflow-y-auto">
-                    {draft.comments.map(comment => (
+                  <div className="flex flex-col gap-2 max-h-[420px] overflow-y-auto">
+                    {[...draft.comments].reverse().map(comment => (
                       <div key={comment.id} className="group rounded-lg p-2.5 transition-colors" style={{ background: 'var(--row-bg)' }}>
                         <div className="flex justify-between items-start gap-2 mb-1">
                           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>

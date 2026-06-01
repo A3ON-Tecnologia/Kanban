@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
@@ -19,9 +20,42 @@ interface Props {
   currentUserId?: string;
 }
 
-const COLUMN_ACCENT = ['#22c55e', '#3b82f6', '#f59e0b', '#facc15', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#ffffff'];
+
+const COLUMN_ACCENT_LIGHT = [
+  '#22c55e', // verde
+  '#3b82f6', // azul
+  '#6366f1', // roxo
+  '#8b5cf6', // roxo claro
+  '#f59e0b', // amarelo
+  '#facc15', // amarelo claro
+  '#ef4444', // vermelho
+  '#06b6d4', // ciano
+  '#f97316', // laranja
+  '#ec4899', // rosa
+  '#ffffff', // branco
+  '#e5e9f0', // cinza claro
+];
+const COLUMN_ACCENT_DARK = [
+  '#22c55e', // verde
+  '#166534', // verde escuro
+  '#3b82f6', // azul
+  '#1e293b', // azul escuro
+  '#6366f1', // roxo
+  '#8b5cf6', // roxo claro
+  '#0f172a', // quase preto
+  '#64748b', // cinza escuro
+  '#f59e0b', // amarelo
+  '#ef4444', // vermelho
+  '#b91c1c', // vermelho escuro
+  '#06b6d4', // ciano
+  '#0e7490', // ciano escuro
+  '#f97316', // laranja
+  '#ec4899', // rosa
+];
 
 const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard, onOpenCard, onRenameColumn, onDeleteColumn, onRecolorColumn, currentUserId }) => {
+  const { theme } = useTheme();
+  const COLUMN_ACCENT = theme === 'light' ? COLUMN_ACCENT_LIGHT : COLUMN_ACCENT_DARK;
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [showMenu, setShowMenu] = useState(false);
@@ -42,6 +76,9 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
+    boxShadow: isDragging ? '0 0 0 4px rgba(34,48,74,0.18), 0 4px 24px rgba(34,48,74,0.18)' : undefined,
+    background: isDragging ? 'linear-gradient(0deg, rgba(34,48,74,0.10) 0%, var(--bg-elevated) 100%)' : 'var(--bg-elevated)',
+    border: isDragging ? '2px solid #22304a' : '1px solid var(--border)'
   };
 
   const handleAddCard = () => {
