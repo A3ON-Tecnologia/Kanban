@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 
-import type { Card, ChecklistItem, Priority, Board } from '../types';
+import type { Card, Checklist, ChecklistItem, Priority, Board } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
@@ -44,9 +44,11 @@ const COLORS = [
 
 const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard, currentUserId }) => {
   const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const [draft, setDraft] = useState<Card>({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
+  const [draft, setDraft] = useState<Card>({ ...card, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   const [descMaximized, setDescMaximized] = useState(false);
-  const [newCheckItem, setNewCheckItem] = useState('');
+  const [newCheckItems, setNewCheckItems] = useState<Record<string, string>>({});
+  const [newChecklistName, setNewChecklistName] = useState('');
+  const [showNewChecklist, setShowNewChecklist] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [sendItem, setSendItem] = useState<ChecklistItem | null>(null);
   const [sendBoardId, setSendBoardId] = useState('');
@@ -54,7 +56,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
   // Sempre sincroniza o draft com o card do backend ao abrir ou quando o card mudar
   useEffect(() => {
-    setDraft({ ...card, checklist: [...card.checklist], comments: [...card.comments] });
+    setDraft({ ...card, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   }, [card]);
 
   useEffect(() => {
@@ -65,21 +67,20 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
   const update = (partial: Partial<Card>) => setDraft(d => ({ ...d, ...partial }));
 
-  const addCheckItem = () => {
-    const text = newCheckItem.trim();
-    if (!text) return;
-    update({ checklist: [...draft.checklist, { id: uuidv4(), text, done: false }] });
-    setNewCheckItem('');
+  const addCheckItem = (clId: string, text: string) => {
+    if (!text.trim()) return;
+    update({ checklist: draft.checklist.map((cl: Checklist) => cl.id === clId ? { ...cl, items: [...cl.items, { id: uuidv4(), text: text.trim(), done: false }] } : cl) });
+    setNewCheckItems(prev => ({ ...prev, [clId]: '' }));
   };
 
-  const toggleCheck = (id: string) =>
-    update({ checklist: draft.checklist.map((i: ChecklistItem) => i.id === id ? { ...i, done: !i.done } : i) });
+  const toggleCheck = (clId: string, itemId: string) =>
+    update({ checklist: draft.checklist.map((cl: Checklist) => cl.id === clId ? { ...cl, items: cl.items.map((i: ChecklistItem) => i.id === itemId ? { ...i, done: !i.done } : i) } : cl) });
 
-  const deleteCheck = (id: string) =>
-    update({ checklist: draft.checklist.filter((i: ChecklistItem) => i.id !== id) });
+  const deleteCheck = (clId: string, itemId: string) =>
+    update({ checklist: draft.checklist.map((cl: Checklist) => cl.id === clId ? { ...cl, items: cl.items.filter((i: ChecklistItem) => i.id !== itemId) } : cl) });
 
-  const updateCheckText = (id: string, text: string) =>
-    update({ checklist: draft.checklist.map((i: ChecklistItem) => i.id === id ? { ...i, text } : i) });
+  const updateCheckText = (clId: string, itemId: string, text: string) =>
+    update({ checklist: draft.checklist.map((cl: Checklist) => cl.id === clId ? { ...cl, items: cl.items.map((i: ChecklistItem) => i.id === itemId ? { ...i, text } : i) } : cl) });
 
   const addComment = () => {
     const text = newComment.trim();
@@ -91,8 +92,9 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
   const deleteComment = (id: string) =>
     update({ comments: draft.comments.filter(c => c.id !== id) });
 
-  const doneCount = draft.checklist.filter((i: ChecklistItem) => i.done).length;
-  const totalCount = draft.checklist.length;
+  const allItems = draft.checklist.flatMap((cl: Checklist) => cl.items);
+  const doneCount = allItems.filter((i: ChecklistItem) => i.done).length;
+  const totalCount = allItems.length;
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
   const inputStyle = {
@@ -337,87 +339,162 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                 </div>
               </div>
 
-              {/* Checklist */}
+              {/* Checklists */}
               <div className="flex items-center justify-between">
-                <Label>Checklist</Label>
-                {totalCount > 0 && (
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {doneCount}/{totalCount} — {progress}%
-                  </span>
-                )}
+                <Label>☑ Checklists</Label>
+                <div className="flex items-center gap-2">
+                  {totalCount > 0 && (
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {doneCount}/{totalCount} — {progress}%
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowNewChecklist(v => !v)}
+                    className="text-xs px-2 py-1 rounded transition-all"
+                    style={{ color: 'var(--accent)', background: 'var(--accent-faint)', border: '1px solid var(--accent-border)' }}
+                  >
+                    + Novo Checklist
+                  </button>
+                </div>
               </div>
-              {totalCount > 0 && (
-                <div className="h-1 rounded-full overflow-hidden -mt-3" style={{ background: 'var(--track-bg)' }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${progress}%`,
-                      background: progress === 100
-                        ? 'linear-gradient(90deg, #4ade80, #07d963)'
-                        : '#07d963',
+
+              {/* New checklist name input */}
+              {showNewChecklist && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newChecklistName}
+                    onChange={e => setNewChecklistName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newChecklistName.trim()) {
+                        update({ checklist: [...draft.checklist, { id: uuidv4(), title: newChecklistName.trim(), items: [] }] });
+                        setNewChecklistName(''); setShowNewChecklist(false);
+                      } else if (e.key === 'Escape') { setNewChecklistName(''); setShowNewChecklist(false); }
                     }}
+                    placeholder="Nome do checklist..."
+                    className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                    style={inputStyle}
+                    autoFocus
                   />
+                  <button
+                    onClick={() => {
+                      if (!newChecklistName.trim()) return;
+                      update({ checklist: [...draft.checklist, { id: uuidv4(), title: newChecklistName.trim(), items: [] }] });
+                      setNewChecklistName(''); setShowNewChecklist(false);
+                    }}
+                    className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                    style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+                  >
+                    Criar
+                  </button>
+                  <button
+                    onClick={() => { setNewChecklistName(''); setShowNewChecklist(false); }}
+                    className="px-3 py-2 rounded-lg text-sm transition-all"
+                    style={{ color: 'var(--text-muted)', background: 'var(--glass-bg)' }}
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
-              <div className="flex flex-col gap-1.5">
-                {draft.checklist.map((item: ChecklistItem) => (
-                  <div key={item.id} className="flex items-center gap-2.5 group py-1 px-2 rounded-lg transition-colors" style={{ background: 'var(--row-bg)' }}>
-                    <input
-                      type="checkbox"
-                      checked={item.done}
-                      onChange={() => toggleCheck(item.id)}
-                      className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 accent-green-400"
-                    />
-                    <input
-                      type="text"
-                      value={item.text}
-                      onChange={e => updateCheckText(item.id, e.target.value)}
-                      className="flex-1 text-sm bg-transparent outline-none transition-colors"
-                      style={{
-                        color: item.done ? 'var(--text-faint)' : 'var(--text-body)',
-                        textDecoration: item.done ? 'line-through' : 'none',
-                      }}
-                    />
-                    {boards && boards.length > 0 && onSendToBoard && (
-                      <button
-                        onClick={() => { setSendItem(item); setSendBoardId(''); setSendColId(''); }}
-                        className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
-                        style={{ color: '#60a5fa' }}
-                        title="Criar cartão em outro quadro"
-                      >
-                        ↗
-                      </button>
+
+              {/* Each checklist */}
+              {draft.checklist.map((cl: Checklist) => {
+                const clDone = cl.items.filter((i: ChecklistItem) => i.done).length;
+                const clTotal = cl.items.length;
+                const clProgress = clTotal > 0 ? Math.round((clDone / clTotal) * 100) : 0;
+                const clNewItem = newCheckItems[cl.id] ?? '';
+                return (
+                  <div key={cl.id} className="flex flex-col gap-2 rounded-xl p-3" style={{ background: 'var(--row-bg)', border: '1px solid var(--border)' }}>
+                    {/* Checklist header */}
+                    <div className="flex items-center gap-2 justify-between">
+                      <input
+                        type="text"
+                        value={cl.title}
+                        onChange={e => update({ checklist: draft.checklist.map((c: Checklist) => c.id === cl.id ? { ...c, title: e.target.value } : c) })}
+                        className="flex-1 text-sm font-semibold bg-transparent outline-none"
+                        style={{ color: 'var(--text-primary)' }}
+                      />
+                      <div className="flex items-center gap-1.5">
+                        {clTotal > 0 && (
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{clDone}/{clTotal}</span>
+                        )}
+                        <button
+                          onClick={() => update({ checklist: draft.checklist.filter((c: Checklist) => c.id !== cl.id) })}
+                          className="text-xs w-5 h-5 flex items-center justify-center rounded transition-all"
+                          style={{ color: 'rgba(248,113,113,0.6)' }}
+                          title="Excluir checklist"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    {clTotal > 0 && (
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--track-bg)' }}>
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${clProgress}%`, background: clProgress === 100 ? 'linear-gradient(90deg, #4ade80, #07d963)' : '#07d963' }}
+                        />
+                      </div>
                     )}
-                    <button
-                      onClick={() => deleteCheck(item.id)}
-                      className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
-                      style={{ color: '#f87171' }}
-                    >
-                      ✕
-                    </button>
+                    {/* Items */}
+                    <div className="flex flex-col gap-1">
+                      {cl.items.map((item: ChecklistItem) => (
+                        <div key={item.id} className="flex items-center gap-2.5 group py-1 px-2 rounded-lg transition-colors" style={{ background: 'var(--bg-input)' }}>
+                          <input
+                            type="checkbox"
+                            checked={item.done}
+                            onChange={() => toggleCheck(cl.id, item.id)}
+                            className="w-3.5 h-3.5 rounded cursor-pointer flex-shrink-0 accent-green-400"
+                          />
+                          <input
+                            type="text"
+                            value={item.text}
+                            onChange={e => updateCheckText(cl.id, item.id, e.target.value)}
+                            className="flex-1 text-sm bg-transparent outline-none transition-colors"
+                            style={{ color: item.done ? 'var(--text-faint)' : 'var(--text-body)', textDecoration: item.done ? 'line-through' : 'none' }}
+                          />
+                          {boards && boards.length > 0 && onSendToBoard && (
+                            <button
+                              onClick={() => { setSendItem(item); setSendBoardId(''); setSendColId(''); }}
+                              className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
+                              style={{ color: '#60a5fa' }}
+                              title="Criar cartão em outro quadro"
+                            >↗</button>
+                          )}
+                          <button
+                            onClick={() => deleteCheck(cl.id, item.id)}
+                            className="opacity-0 group-hover:opacity-100 text-xs transition-all w-4 h-4 flex items-center justify-center rounded"
+                            style={{ color: '#f87171' }}
+                          >✕</button>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Add item to this checklist */}
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={clNewItem}
+                        onChange={e => setNewCheckItems(prev => ({ ...prev, [cl.id]: e.target.value }))}
+                        onKeyDown={e => { if (e.key === 'Enter') addCheckItem(cl.id, clNewItem); }}
+                        placeholder="Novo item..."
+                        className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+                        style={inputStyle}
+                      />
+                      <button
+                        onClick={() => addCheckItem(cl.id, clNewItem)}
+                        className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                        style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
+                      >
+                        + Add
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newCheckItem}
-                  onChange={e => setNewCheckItem(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addCheckItem(); }}
-                  placeholder="Novo item..."
-                  className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
-                  style={inputStyle}
-                />
-                <button
-                  onClick={addCheckItem}
-                  className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
-                  style={{ background: 'var(--accent-faint)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-faint)')}
-                >
-                  + Add
-                </button>
-              </div>
+                );
+              })}
             </div>
 
             {/* Footer */}

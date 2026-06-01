@@ -4,6 +4,12 @@ export interface ChecklistItem {
   done: boolean;
 }
 
+export interface Checklist {
+  id: string;
+  title: string;
+  items: ChecklistItem[];
+}
+
 export interface Comment {
   id: string;
   text: string;
@@ -17,7 +23,7 @@ export interface Card {
   title: string;
   description: string;
   color: string;
-  checklist: ChecklistItem[];
+  checklist: Checklist[];
   comments: Comment[];
   createdAt: string;
   createdBy?: string;

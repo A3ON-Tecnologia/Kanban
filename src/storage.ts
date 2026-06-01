@@ -19,8 +19,10 @@ function makeDefaultBoard(): Board {
             description: 'Definir escopo e objetivos do projeto.',
             color: '#f87171',
             checklist: [
-              { id: uuidv4(), text: 'Reunião de kickoff', done: false },
-              { id: uuidv4(), text: 'Definir stakeholders', done: false },
+              { id: uuidv4(), title: 'Checklist', items: [
+                { id: uuidv4(), text: 'Reunião de kickoff', done: false },
+                { id: uuidv4(), text: 'Definir stakeholders', done: false },
+              ]},
             ],
             comments: [],
             createdAt: new Date().toISOString(),
@@ -40,8 +42,10 @@ function makeDefaultBoard(): Board {
             description: 'Criar protótipo de alta fidelidade no Figma.',
             color: '#fb923c',
             checklist: [
-              { id: uuidv4(), text: 'Wireframes', done: true },
-              { id: uuidv4(), text: 'Design final', done: false },
+              { id: uuidv4(), title: 'Checklist', items: [
+                { id: uuidv4(), text: 'Wireframes', done: true },
+                { id: uuidv4(), text: 'Design final', done: false },
+              ]},
             ],
             comments: [],
             createdAt: new Date().toISOString(),
@@ -61,8 +65,10 @@ function makeDefaultBoard(): Board {
             description: 'Entrevistas com usuários e documentação.',
             color: '#4ade80',
             checklist: [
-              { id: uuidv4(), text: 'Entrevistas', done: true },
-              { id: uuidv4(), text: 'Documentação', done: true },
+              { id: uuidv4(), title: 'Checklist', items: [
+                { id: uuidv4(), text: 'Entrevistas', done: true },
+                { id: uuidv4(), text: 'Documentação', done: true },
+              ]},
             ],
             comments: [],
             createdAt: new Date().toISOString(),
@@ -77,13 +83,25 @@ function makeDefaultBoard(): Board {
 }
 
 function migrateCard(card: Record<string, unknown>): Record<string, unknown> {
-  return {
+  const migrated: Record<string, unknown> = {
     priority: '',
     dueDate: '',
     alertMinutes: 30,
     comments: [],
     ...card,
   };
+
+  // Migrate old checklist format: ChecklistItem[] → Checklist[]
+  if (Array.isArray(migrated.checklist)) {
+    const first = (migrated.checklist as Record<string, unknown>[])[0];
+    if (first && !('items' in first)) {
+      migrated.checklist = [{ id: uuidv4(), title: 'Checklist', items: migrated.checklist }];
+    }
+  } else {
+    migrated.checklist = [];
+  }
+
+  return migrated;
 }
 
 function migrateBoard(board: Board): Board {

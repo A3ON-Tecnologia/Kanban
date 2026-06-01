@@ -43,8 +43,9 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
 
   const priorityDot = card.priority ? PRIORITY_DOT[card.priority] : null;
   const due = card.dueDate ? formatDueDate(card.dueDate) : null;
-  const doneCount = card.checklist.filter(i => i.done).length;
-  const totalCount = card.checklist.length;
+  const allItems = card.checklist.flatMap(cl => cl.items ?? []);
+  const doneCount = allItems.filter(i => i.done).length;
+  const totalCount = allItems.length;
 
   // Build transform string — add rotate+scale when dragging
   const baseTransform = CSS.Transform.toString(transform);

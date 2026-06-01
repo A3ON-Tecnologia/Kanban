@@ -1,7 +1,29 @@
-import type { Board } from './types';
+import type { Board, Checklist, ChecklistItem } from './types';
 
 // Em produção usa URL relativa; em dev aponta para o servidor local
 const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8687/api';
+
+// Migra checklist do formato antigo (ChecklistItem[]) para o novo (Checklist[])
+function migrateChecklist(checklist: unknown[], cardId: string): Checklist[] {
+  if (!checklist.length) return [];
+  const first = checklist[0] as Record<string, unknown>;
+  if ('items' in first) return checklist as Checklist[]; // já está no novo formato
+  // formato antigo: ChecklistItem[]
+  return [{ id: `cl-${cardId}`, title: 'Checklist', items: checklist as ChecklistItem[] }];
+}
+
+function migrateBoards(boards: Board[]): Board[] {
+  return boards.map(board => ({
+    ...board,
+    columns: board.columns.map(col => ({
+      ...col,
+      cards: col.cards.map(card => ({
+        ...card,
+        checklist: migrateChecklist(card.checklist as unknown as unknown[], card.id),
+      })),
+    })),
+  }));
+}
 
 function authHeaders(): HeadersInit {
   const token = localStorage.getItem('kanban_token');
@@ -36,13 +58,13 @@ export async function getMe(): Promise<AuthUser> {
 export async function loadBoards(): Promise<Board[]> {
   const res = await fetch(`${API_URL}/boards`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao carregar quadros: ${res.statusText}`);
-  return res.json();
+  return migrateBoards(await res.json());
 }
 
 export async function loadMyBoards(): Promise<Board[]> {
   const res = await fetch(`${API_URL}/boards?mine=true`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao carregar meus quadros: ${res.statusText}`);
-  return res.json();
+  return migrateBoards(await res.json());
 }
 
 export async function createBoard(board: Board): Promise<void> {

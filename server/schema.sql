@@ -36,11 +36,20 @@ CREATE TABLE IF NOT EXISTS cards (
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS checklist_items (
-  id        VARCHAR(36)   NOT NULL PRIMARY KEY,
-  card_id   VARCHAR(36)   NOT NULL,
-  text      VARCHAR(1000) NOT NULL,
-  done      TINYINT(1)    NOT NULL DEFAULT 0,
-  position  INT           NOT NULL DEFAULT 0,
+  id            VARCHAR(36)   NOT NULL PRIMARY KEY,
+  card_id       VARCHAR(36)   NOT NULL,
+  checklist_id  VARCHAR(36)   NULL,
+  text          VARCHAR(1000) NOT NULL,
+  done          TINYINT(1)    NOT NULL DEFAULT 0,
+  position      INT           NOT NULL DEFAULT 0,
+  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS checklists (
+  id        VARCHAR(36)  NOT NULL PRIMARY KEY,
+  card_id   VARCHAR(36)  NOT NULL,
+  title     VARCHAR(255) NOT NULL DEFAULT 'Checklist',
+  position  INT          NOT NULL DEFAULT 0,
   FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

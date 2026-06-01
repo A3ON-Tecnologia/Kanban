@@ -39,10 +39,40 @@ router.get('/', async (req, res) => {
 
         const cardsList = [];
         for (const card of cards) {
-          const [items] = await pool.execute(
-            'SELECT * FROM checklist_items WHERE card_id = ? ORDER BY position',
+          // Load checklists for this card
+          const [checklists] = await pool.execute(
+            'SELECT * FROM checklists WHERE card_id = ? ORDER BY position',
             [card.id]
           );
+
+          let checklistData = [];
+          if (checklists.length > 0) {
+            // New format: each checklist has its own items
+            for (const cl of checklists) {
+              const [clItems] = await pool.execute(
+                'SELECT * FROM checklist_items WHERE checklist_id = ? ORDER BY position',
+                [cl.id]
+              );
+              checklistData.push({
+                id: cl.id,
+                title: cl.title,
+                items: clItems.map(i => ({ id: i.id, text: i.text, done: i.done === 1 })),
+              });
+            }
+          } else {
+            // Legacy format: flat items with card_id, wrap in a single default checklist
+            const [items] = await pool.execute(
+              'SELECT * FROM checklist_items WHERE card_id = ? AND (checklist_id IS NULL OR checklist_id = \'\') ORDER BY position',
+              [card.id]
+            );
+            if (items.length > 0) {
+              checklistData = [{
+                id: `cl-${card.id}`,
+                title: 'Checklist',
+                items: items.map(i => ({ id: i.id, text: i.text, done: i.done === 1 })),
+              }];
+            }
+          }
 
           const [comments] = await pool.execute(
             'SELECT * FROM comments WHERE card_id = ? ORDER BY created_at',
@@ -59,7 +89,7 @@ router.get('/', async (req, res) => {
             alertMinutes: card.alert_minutes || 30,
             createdAt:    card.created_at,
             createdBy:    card.created_by || null,
-            checklist:    items.map(i => ({ id: i.id, text: i.text, done: i.done === 1 })),
+            checklist:    checklistData,
             comments:     comments.map(c => ({ id: c.id, text: c.text, createdAt: c.created_at })),
           });
         }
@@ -141,12 +171,28 @@ router.put('/:id', async (req, res) => {
         );
 
         for (let itemI = 0; itemI < card.checklist.length; itemI++) {
-          const item = card.checklist[itemI];
-          console.log(`      Inserindo checklist: ${item.id} - ${item.text}`);
-          await conn.execute(
-            'INSERT INTO checklist_items (id, card_id, text, done, position) VALUES (?, ?, ?, ?, ?)',
-            [item.id, card.id, item.text, item.done ? 1 : 0, itemI]
-          );
+          const cl = card.checklist[itemI];
+          // Support both new Checklist[] format and legacy ChecklistItem[] format
+          if (cl.items !== undefined) {
+            // New format: cl is a Checklist with { id, title, items[] }
+            await conn.execute(
+              'INSERT INTO checklists (id, card_id, title, position) VALUES (?, ?, ?, ?)',
+              [cl.id, card.id, cl.title || 'Checklist', itemI]
+            );
+            for (let ii = 0; ii < cl.items.length; ii++) {
+              const item = cl.items[ii];
+              await conn.execute(
+                'INSERT INTO checklist_items (id, card_id, checklist_id, text, done, position) VALUES (?, ?, ?, ?, ?, ?)',
+                [item.id, card.id, cl.id, item.text, item.done ? 1 : 0, ii]
+              );
+            }
+          } else {
+            // Legacy format: cl is a ChecklistItem with { id, text, done }
+            await conn.execute(
+              'INSERT INTO checklist_items (id, card_id, checklist_id, text, done, position) VALUES (?, ?, NULL, ?, ?, ?)',
+              [cl.id, card.id, cl.text, cl.done ? 1 : 0, itemI]
+            );
+          }
         }
 
         for (const comment of card.comments || []) {
