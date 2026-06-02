@@ -1,15 +1,16 @@
 import type { Board, Checklist, ChecklistItem } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 // Em produção usa URL relativa; em dev aponta para o servidor local
 const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8687/api';
 
 // Migra checklist do formato antigo (ChecklistItem[]) para o novo (Checklist[])
-function migrateChecklist(checklist: unknown[], cardId: string): Checklist[] {
+function migrateChecklist(checklist: unknown[], _cardId: string): Checklist[] {
   if (!checklist.length) return [];
   const first = checklist[0] as Record<string, unknown>;
   if ('items' in first) return checklist as Checklist[]; // já está no novo formato
   // formato antigo: ChecklistItem[]
-  return [{ id: `cl-${cardId}`, title: 'Checklist', items: checklist as ChecklistItem[] }];
+  return [{ id: uuidv4(), title: 'Checklist', items: checklist as ChecklistItem[] }];
 }
 
 function migrateBoards(boards: Board[]): Board[] {
@@ -82,7 +83,10 @@ export async function saveBoard(board: Board): Promise<void> {
     headers: authHeaders(),
     body: JSON.stringify(board),
   });
-  if (!res.ok) throw new Error(`Erro ao salvar quadro: ${res.statusText}`);
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.error || `Erro ao salvar quadro: ${res.status} ${res.statusText}`);
+  }
 }
 
 export async function deleteBoard(id: string): Promise<void> {

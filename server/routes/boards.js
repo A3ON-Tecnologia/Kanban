@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { authMiddleware } = require('../middleware/auth');
+const { v4: uuidv4 } = require('uuid');
 
 router.use(authMiddleware);
 
@@ -67,7 +68,7 @@ router.get('/', async (req, res) => {
             );
             if (items.length > 0) {
               checklistData = [{
-                id: `cl-${card.id}`,
+                id: uuidv4(),
                 title: 'Checklist',
                 items: items.map(i => ({ id: i.id, text: i.text, done: i.done === 1 })),
               }];

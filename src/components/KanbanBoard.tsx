@@ -48,15 +48,21 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Sync initialBoard prop to board state
+  // Sync apenas quando trocar de quadro (não a cada save, evitando sobrescrever mudanças locais)
   React.useEffect(() => {
     setBoard(initialBoard);
-  }, [initialBoard]);
+  }, [initialBoard.id]);
 
   const persist = useCallback(async (b: Board) => {
     setBoard(b);
-    await saveBoardAPI(b);
-    onBoardChange?.(b);
+    try {
+      await saveBoardAPI(b);
+      onBoardChange?.(b);
+    } catch (err) {
+      console.error('Erro ao salvar quadro:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Erro ao salvar: ${msg}`);
+    }
   }, [onBoardChange]);
 
   // ── Column operations ────────────────────────────────────────

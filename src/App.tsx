@@ -51,8 +51,7 @@ function App() {
     setMyBoards(prev => prev.map(b => b.id === id ? { ...b, title } : b))
   }
 
-  const handleBoardChange = async (board: Board) => {
-    await saveBoard(board)
+  const handleBoardChange = (board: Board) => {
     setBoards(prev => prev.map(b => b.id === board.id ? board : b))
     setMyBoards(prev => prev.map(b => b.id === board.id ? board : b))
   }
