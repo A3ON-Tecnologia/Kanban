@@ -200,6 +200,25 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     });
   };
 
+  const getColumnDropTargetId = (over: DragEndEvent['over']): string | null => {
+    if (!over) return null;
+
+    if (over.data.current?.type === 'column') {
+      return over.id as string;
+    }
+
+    const overId = String(over.id);
+    if (overId.startsWith('col-')) {
+      return overId.replace('col-', '');
+    }
+
+    if (over.data.current?.columnId) {
+      return over.data.current.columnId as string;
+    }
+
+    return null;
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveCard(null);
@@ -212,8 +231,9 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     // Reorder columns
     if (activeType === 'column') {
       const oldIndex = board.columns.findIndex(c => c.id === active.id);
-      const newIndex = board.columns.findIndex(c => c.id === over.id);
-      if (oldIndex !== newIndex) {
+      const targetColumnId = getColumnDropTargetId(over);
+      const newIndex = board.columns.findIndex(c => c.id === targetColumnId);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         persist({ ...board, columns: arrayMove(board.columns, oldIndex, newIndex) });
       }
       return;
