@@ -1,8 +1,8 @@
 import type { Board, Checklist, ChecklistItem } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
-// Em produção usa URL relativa; em dev aponta para o servidor local
-const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8687/api';
+// Usa sempre a mesma base; no desenvolvimento o Vite encaminha /api para o backend.
+const API_URL = '/api';
 
 // Migra checklist do formato antigo (ChecklistItem[]) para o novo (Checklist[])
 function migrateChecklist(checklist: unknown[], _cardId: string): Checklist[] {
