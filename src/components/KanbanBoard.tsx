@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/sortable';
 import { v4 as uuidv4 } from 'uuid';
 import type { Board, Card, Column } from '../types';
-import { saveBoard as saveBoardAPI, recordDeletedCard, loadDeletedCards, restoreDeletedCard, removeDeletedCard, type DeletedCardRecord } from '../api';
+import { saveBoard as saveBoardAPI } from '../api';
 import KanbanColumn from './KanbanColumn';
 import KanbanCard from './KanbanCard';
 import CardModal from './CardModal';
@@ -38,10 +38,6 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
   const [modalState, setModalState] = useState<{ cardId: string; columnId: string } | null>(null);
   const [addingColumn, setAddingColumn] = useState(false);
-  const [deletedCards, setDeletedCards] = useState<DeletedCardRecord[]>([]);
-  const [deletedPanelOpen, setDeletedPanelOpen] = useState(false);
-  const [restoreTargets, setRestoreTargets] = useState<Record<string, string>>({});
-  const [restoringCardId, setRestoringCardId] = useState<string | null>(null);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [newColumnColor, setNewColumnColor] = useState('#22c55e');
   const [newColumnColor2, setNewColumnColor2] = useState('#3b82f6');
@@ -52,23 +48,10 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Sync apenas quando trocar de quadro (nÃ£o a cada save, evitando sobrescrever mudanÃ§as locais)
+  // Sync apenas quando trocar de quadro (não a cada save, evitando sobrescrever mudanças locais)
   React.useEffect(() => {
     setBoard(initialBoard);
   }, [initialBoard.id]);
-
-  React.useEffect(() => {
-    const load = async () => {
-      try {
-        const rows = await loadDeletedCards(board.id);
-        setDeletedCards(rows);
-      } catch (err) {
-        console.error('Erro ao carregar cards excluídos:', err);
-      }
-    };
-    load();
-  }, [board.id]);
-
 
   const persist = useCallback(async (b: Board) => {
     setBoard(b);
@@ -82,7 +65,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     }
   }, [onBoardChange]);
 
-  // â”€â”€ Column operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Column operations ────────────────────────────────────────
   const addColumn = () => {
     const title = newColumnTitle.trim();
     if (!title) return;
@@ -115,7 +98,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     persist({ ...board, columns: board.columns.filter(c => c.id !== columnId) });
   };
 
-  // â”€â”€ Card operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Card operations ──────────────────────────────────────────
   const addCard = (columnId: string, title: string) => {
     const newCard: Card = {
       id: uuidv4(),
@@ -138,20 +121,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     });
   };
 
-  const deleteCard = async (columnId: string, cardId: string) => {
-    const column = board.columns.find(c => c.id === columnId);
-    const card = column?.cards.find(c => c.id === cardId);
-    if (!card) return;
-
-    try {
-      await recordDeletedCard({ boardId: board.id, columnId, card });
-    } catch (err) {
-      console.error('Erro ao registrar card excluído:', err);
-      const msg = err instanceof Error ? err.message : String(err);
-      alert(`Erro ao registrar exclusão: ${msg}`);
-      return;
-    }
-
+  const deleteCard = (columnId: string, cardId: string) => {
     persist({
       ...board,
       columns: board.columns.map(c =>
@@ -159,6 +129,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       ),
     });
   };
+
   const saveCard = (updatedCard: Card, columnId: string) => {
     persist({
       ...board,
@@ -169,32 +140,8 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       ),
     });
   };
-  // â”€â”€ Drag & Drop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  const restoreCard = async (deleted: DeletedCardRecord, targetColumnId: string) => {
-    setRestoringCardId(deleted.id);
-    try {
-      const restored = await restoreDeletedCard(deleted.id);
-      const cardToRestore = restored.card_json as Card;
-      const nextBoard: Board = {
-        ...board,
-        columns: board.columns.map(c =>
-          c.id === targetColumnId ? { ...c, cards: [...c.cards, cardToRestore] } : c
-        ),
-      };
-
-      await persist(nextBoard);
-      await removeDeletedCard(deleted.id);
-      setDeletedCards(prev => prev.filter(item => item.id !== deleted.id));
-    } catch (err) {
-      console.error('Erro ao restaurar card:', err);
-      const msg = err instanceof Error ? err.message : String(err);
-      alert(`Erro ao restaurar card: ${msg}`);
-    } finally {
-      setRestoringCardId(null);
-    }
-  };
-
+  // ── Drag & Drop ──────────────────────────────────────────────
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const type = active.data.current?.type;
@@ -253,25 +200,6 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     });
   };
 
-  const getColumnDropTargetId = (over: DragEndEvent['over']): string | null => {
-    if (!over) return null;
-
-    if (over.data.current?.type === 'column') {
-      return over.id as string;
-    }
-
-    const overId = String(over.id);
-    if (overId.startsWith('col-')) {
-      return overId.replace('col-', '');
-    }
-
-    if (over.data.current?.columnId) {
-      return over.data.current.columnId as string;
-    }
-
-    return null;
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveCard(null);
@@ -284,9 +212,8 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     // Reorder columns
     if (activeType === 'column') {
       const oldIndex = board.columns.findIndex(c => c.id === active.id);
-      const targetColumnId = getColumnDropTargetId(over);
-      const newIndex = board.columns.findIndex(c => c.id === targetColumnId);
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      const newIndex = board.columns.findIndex(c => c.id === over.id);
+      if (oldIndex !== newIndex) {
         persist({ ...board, columns: arrayMove(board.columns, oldIndex, newIndex) });
       }
       return;
@@ -364,7 +291,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               title="Voltar aos quadros"
             >
-              â†
+              ←
             </button>
           )}
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -380,7 +307,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
               style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: 'var(--text-primary)' }}
             />
             <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
-              {totalCards} {totalCards === 1 ? 'tarefa' : 'tarefas'} Â· {board.columns.length} {board.columns.length === 1 ? 'coluna' : 'colunas'}
+              {totalCards} {totalCards === 1 ? 'tarefa' : 'tarefas'} · {board.columns.length} {board.columns.length === 1 ? 'coluna' : 'colunas'}
             </p>
           </div>
           {/* Board switcher */}
@@ -456,14 +383,6 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setDeletedPanelOpen(true)}
-            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
-            style={{ background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-          >
-            Cards excluídos
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{deletedCards.length}</span>
-          </button>
-          <button
             onClick={() => setAddingColumn(true)}
             className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
             style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
@@ -524,7 +443,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
                   {/* Color swatches */}
                   <div className="flex flex-col gap-1.5 px-1">
                     <div className="flex items-center gap-1.5">
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 28, flexShrink: 0 }}>InÃ­cio</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 28, flexShrink: 0 }}>Início</span>
                       {COLUMN_ACCENT.map(c => (
                         <button key={c} onClick={() => setNewColumnColor(c)}
                           className="w-5 h-5 rounded-full flex-shrink-0 transition-transform"
@@ -594,79 +513,8 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
           currentUserId={currentUserId}
         />
       )}
-      {deletedPanelOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={() => setDeletedPanelOpen(false)}>
-          <div className="h-full w-full max-w-md overflow-y-auto border-l" style={{ background: 'var(--bg-main)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border)' }}>
-              <div>
-                <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Cards excluídos</h2>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{deletedCards.length} card(s) armazenado(s)</p>
-              </div>
-              <button onClick={() => setDeletedPanelOpen(false)} className="rounded-lg px-3 py-2 text-sm" style={{ background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>Fechar</button>
-            </div>
-
-            <div className="p-4 space-y-3">
-              {deletedCards.length === 0 ? (
-                <div className="rounded-xl p-4 text-sm" style={{ background: 'var(--glass-bg)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
-                  Nenhum card excluído neste quadro.
-                </div>
-              ) : deletedCards.map(dc => {
-                const selectedColumnId = restoreTargets[dc.id] || dc.column_id || board.columns[0]?.id || '';
-                return (
-                  <div key={dc.id} className="rounded-xl p-4 space-y-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
-                    <div>
-                      <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>{dc.title}</div>
-                      <div className="text-sm mt-1 line-clamp-3" style={{ color: 'var(--text-muted)' }}>{dc.description || 'Sem descrição'}</div>
-                    </div>
-                    <div className="text-xs" style={{ color: 'var(--text-subtle)' }}>
-                      Excluído em {new Date(dc.deleted_at).toLocaleString('pt-BR')}
-                    </div>
-                    <label className="block text-xs" style={{ color: 'var(--text-muted)' }}>
-                      Restaurar para coluna
-                      <select
-                        className="mt-1 w-full rounded-lg px-3 py-2 text-sm outline-none"
-                        value={selectedColumnId}
-                        onChange={e => setRestoreTargets(prev => ({ ...prev, [dc.id]: e.target.value }))}
-                        style={{ background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                      >
-                        {board.columns.map(col => <option key={col.id} value={col.id}>{col.title}</option>)}
-                      </select>
-                    </label>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => restoreCard(dc, selectedColumnId)}
-                        disabled={restoringCardId === dc.id || !selectedColumnId}
-                        className="flex-1 rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-60"
-                        style={{ background: '#07d963', color: '#0d0f16' }}
-                      >
-                        {restoringCardId === dc.id ? 'Restaurando...' : 'Restaurar'}
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await removeDeletedCard(dc.id);
-                            setDeletedCards(prev => prev.filter(item => item.id !== dc.id));
-                          } catch (err) {
-                            console.error('Erro ao excluir registro do card:', err);
-                          }
-                        }}
-                        className="rounded-lg px-3 py-2 text-sm"
-                        style={{ background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                      >
-                        Remover da lista
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 export default KanbanBoard;
-
-
