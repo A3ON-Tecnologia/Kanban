@@ -4,6 +4,7 @@ interface Props {
   title: string;
   detail?: string;
   confirmLabel?: string;
+  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -12,6 +13,7 @@ const ConfirmModal: React.FC<Props> = ({
   title,
   detail,
   confirmLabel = 'Excluir',
+  cancelLabel = 'Cancelar',
   onConfirm,
   onCancel,
 }) => (
@@ -42,7 +44,7 @@ const ConfirmModal: React.FC<Props> = ({
           className="flex-1 py-2 rounded-lg text-sm"
           style={{ background: 'var(--bg-input)', color: 'var(--text-muted)' }}
         >
-          Cancelar
+          {cancelLabel}
         </button>
       </div>
     </div>

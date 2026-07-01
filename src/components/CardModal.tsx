@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import type { Card, Checklist, ChecklistItem, Priority, Board } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import ConfirmModal from './ConfirmModal';
 
 interface Props {
   card: Card;
@@ -53,6 +54,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
   const [sendItem, setSendItem] = useState<ChecklistItem | null>(null);
   const [sendBoardId, setSendBoardId] = useState('');
   const [sendColId, setSendColId] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Sempre sincroniza o draft com o card do backend ao abrir ou quando o card mudar
   useEffect(() => {
@@ -505,7 +507,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               <div className="flex gap-2">
                 {(!card.createdBy || card.createdBy === currentUserId) && (
                   <button
-                    onClick={() => { onDelete(); onClose(); }}
+                    onClick={() => setConfirmDelete(true)}
                     className="text-sm px-3 py-1.5 rounded-lg transition-all"
                     style={{ color: '#f87171', background: 'transparent' }}
                     onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.1)')}
@@ -528,6 +530,16 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           </div>
         </div>
       </div>
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Tem certeza que deseja excluir?"
+          confirmLabel="SIM"
+          cancelLabel="NAO"
+          onConfirm={() => { onDelete(); onClose(); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
 
       {/* Mini-modal: enviar item para outro quadro */}
       {sendItem && boards && onSendToBoard && (

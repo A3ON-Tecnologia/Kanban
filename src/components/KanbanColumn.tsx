@@ -279,7 +279,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
 
       {confirmDelete && (
         <ConfirmModal
-          title="Excluir coluna?"
+          title="Tem certeza que deseja excluir?"
           detail="Todos os cartões desta coluna serão removidos permanentemente."
           onConfirm={() => { onDeleteColumn(column.id); setConfirmDelete(false); }}
           onCancel={() => setConfirmDelete(false)}

@@ -170,8 +170,10 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
 
       {confirmDelete && (
         <ConfirmModal
-          title="Excluir quadro?"
+          title="Tem certeza que deseja excluir?"
           detail="Todas as colunas e cartões serão removidos permanentemente."
+          confirmLabel="SIM"
+          cancelLabel="NAO"
           onConfirm={() => { onDelete(confirmDelete); setConfirmDelete(null); }}
           onCancel={() => setConfirmDelete(null)}
         />

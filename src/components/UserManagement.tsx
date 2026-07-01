@@ -310,7 +310,9 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
 
       {confirmDelete && (
         <ConfirmModal
-          title={`Excluir "${confirmDelete.username}"?`}
+          title={`Tem certeza que deseja excluir "${confirmDelete.username}"?`}
+          confirmLabel="SIM"
+          cancelLabel="NAO"
           detail="O usuário perderá acesso ao sistema."
           onConfirm={() => handleDelete(confirmDelete)}
           onCancel={() => setConfirmDelete(null)}
