@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
@@ -6,6 +6,7 @@ require('dotenv').config();
 const boardsRouter = require('./routes/boards');
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
+const deletedCardsRouter = require('./routes/deletedCards');
 
 const app = express();
 const PORT = process.env.PORT || 8687;
@@ -16,6 +17,7 @@ app.use(express.json({ limit: '10mb' }));
 // API
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/deleted-cards', deletedCardsRouter);
 app.use('/api/boards', boardsRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
@@ -29,7 +31,7 @@ app.use(express.static(distPath, {
   },
 }));
 
-// Qualquer rota não-API retorna o index.html (SPA)
+// Qualquer rota nÃ£o-API retorna o index.html (SPA)
 app.get('*', (_, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
@@ -39,3 +41,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Acesso local:  http://localhost:${PORT}`);
   console.log(`Acesso na rede: http://<IP-DO-SERVIDOR>:${PORT}`);
 });
+
+

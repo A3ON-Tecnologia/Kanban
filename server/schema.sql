@@ -1,4 +1,4 @@
--- Executar este script no MySQL para criar o banco e as tabelas
+﻿-- Executar este script no MySQL para criar o banco e as tabelas
 
 CREATE DATABASE IF NOT EXISTS KANBAN
   CHARACTER SET utf8mb4
@@ -60,3 +60,22 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at VARCHAR(50)  NOT NULL,
   FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS deleted_cards (
+  id             VARCHAR(36)   NOT NULL PRIMARY KEY,
+  board_id       VARCHAR(36)   NOT NULL,
+  column_id      VARCHAR(36)   NOT NULL,
+  title          VARCHAR(255)  NOT NULL,
+  description    TEXT,
+  color          VARCHAR(20)   DEFAULT '',
+  priority       VARCHAR(10)   DEFAULT '',
+  due_date       VARCHAR(50)   DEFAULT '',
+  alert_minutes  INT           DEFAULT 30,
+  created_at     VARCHAR(50)   NOT NULL,
+  deleted_at     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  deleted_by     VARCHAR(36)   NULL,
+  checklist_json JSON          NULL,
+  comments_json  JSON          NULL,
+  card_json      JSON          NOT NULL
+) ENGINE=InnoDB;
+

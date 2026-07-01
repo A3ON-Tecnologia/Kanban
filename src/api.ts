@@ -1,15 +1,12 @@
-import type { Board, Checklist, ChecklistItem } from './types';
+﻿import type { Board, Checklist, ChecklistItem } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
-// Usa sempre a mesma base; no desenvolvimento o Vite encaminha /api para o backend.
 const API_URL = '/api';
 
-// Migra checklist do formato antigo (ChecklistItem[]) para o novo (Checklist[])
 function migrateChecklist(checklist: unknown[], _cardId: string): Checklist[] {
   if (!checklist.length) return [];
   const first = checklist[0] as Record<string, unknown>;
-  if ('items' in first) return checklist as Checklist[]; // já está no novo formato
-  // formato antigo: ChecklistItem[]
+  if ('items' in first) return checklist as Checklist[];
   return [{ id: uuidv4(), title: 'Checklist', items: checklist as ChecklistItem[] }];
 }
 
@@ -33,7 +30,6 @@ function authHeaders(): HeadersInit {
     : { 'Content-Type': 'application/json' };
 }
 
-// ── Auth ──────────────────────────────────────────────────────
 export interface AuthUser { id: string; username: string; role: 'admin' | 'user'; }
 
 export async function login(username: string, password: string): Promise<{ token: string; user: AuthUser }> {
@@ -55,7 +51,6 @@ export async function getMe(): Promise<AuthUser> {
   return res.json();
 }
 
-// ── Boards ────────────────────────────────────────────────────
 export async function loadBoards(): Promise<Board[]> {
   const res = await fetch(`${API_URL}/boards`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao carregar quadros: ${res.statusText}`);
@@ -97,7 +92,63 @@ export async function deleteBoard(id: string): Promise<void> {
   if (!res.ok) throw new Error(`Erro ao excluir quadro: ${res.statusText}`);
 }
 
-// ── Users (admin) ─────────────────────────────────────────────
+export async function recordDeletedCard(data: { boardId: string; columnId: string; card: unknown }): Promise<void> {
+  const res = await fetch(`${API_URL}/deleted-cards`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.error || `Erro ao registrar card excluído: ${res.status} ${res.statusText}`);
+  }
+}
+
+export interface DeletedCardRecord {
+  id: string;
+  board_id: string;
+  column_id: string;
+  title: string;
+  description: string | null;
+  color: string | null;
+  priority: string | null;
+  due_date: string | null;
+  alert_minutes: number | null;
+  created_at: string;
+  deleted_at: string;
+  deleted_by: string | null;
+  checklist_json: unknown;
+  comments_json: unknown;
+  card_json: unknown;
+}
+
+export async function loadDeletedCards(boardId?: string): Promise<DeletedCardRecord[]> {
+  const url = boardId ? `${API_URL}/deleted-cards?boardId=${encodeURIComponent(boardId)}` : `${API_URL}/deleted-cards`;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Erro ao carregar cards excluídos');
+  return res.json();
+}
+
+export async function removeDeletedCard(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/deleted-cards/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Erro ao remover registro de card excluído: ${res.statusText}`);
+}
+
+export async function restoreDeletedCard(id: string): Promise<DeletedCardRecord> {
+  const res = await fetch(`${API_URL}/deleted-cards/${id}/restore`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.error || `Erro ao restaurar card: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
 export interface UserRecord { id: string; username: string; role: 'admin' | 'user'; created_at: string; }
 
 export async function listUsers(): Promise<UserRecord[]> {
@@ -142,4 +193,3 @@ export async function setUserBoards(userId: string, boardIds: string[]): Promise
   });
   if (!res.ok) throw new Error('Erro ao salvar permissões');
 }
-
