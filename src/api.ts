@@ -30,7 +30,7 @@ function authHeaders(): HeadersInit {
     : { 'Content-Type': 'application/json' };
 }
 
-export interface AuthUser { id: string; username: string; role: 'admin' | 'user'; }
+export interface AuthUser { id: string; username: string; email?: string; role: 'admin' | 'user'; }
 
 export async function login(username: string, password: string): Promise<{ token: string; user: AuthUser }> {
   const res = await fetch(`${API_URL}/auth/login`, {
@@ -149,7 +149,7 @@ export async function restoreDeletedCard(id: string): Promise<DeletedCardRecord>
   return res.json();
 }
 
-export interface UserRecord { id: string; username: string; role: 'admin' | 'user'; created_at: string; }
+export interface UserRecord { id: string; username: string; email?: string; role: 'admin' | 'user'; created_at: string; }
 
 export async function listUsers(): Promise<UserRecord[]> {
   const res = await fetch(`${API_URL}/users`, { headers: authHeaders() });
@@ -157,7 +157,7 @@ export async function listUsers(): Promise<UserRecord[]> {
   return res.json();
 }
 
-export async function createUser(data: { username: string; password: string; role: 'admin' | 'user' }): Promise<UserRecord> {
+export async function createUser(data: { username: string; email: string; password: string; role: 'admin' | 'user' }): Promise<UserRecord> {
   const res = await fetch(`${API_URL}/users`, {
     method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
@@ -166,7 +166,7 @@ export async function createUser(data: { username: string; password: string; rol
   return json;
 }
 
-export async function updateUser(id: string, data: { username: string; password?: string; role: 'admin' | 'user' }): Promise<void> {
+export async function updateUser(id: string, data: { username: string; email: string; password?: string; role: 'admin' | 'user' }): Promise<void> {
   const res = await fetch(`${API_URL}/users/${id}`, {
     method: 'PUT', headers: authHeaders(), body: JSON.stringify(data),
   });

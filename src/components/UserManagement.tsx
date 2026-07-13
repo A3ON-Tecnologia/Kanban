@@ -21,6 +21,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState<UserRecord | null>(null);
   const [formUsername, setFormUsername] = useState('');
+  const [formEmail, setFormEmail] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formRole, setFormRole] = useState<'admin' | 'user'>('user');
   const [formError, setFormError] = useState('');
@@ -37,13 +38,13 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
 
   const openCreate = () => {
     setEditUser(null);
-    setFormUsername(''); setFormPassword(''); setFormRole('user'); setFormError('');
+    setFormUsername(''); setFormEmail(''); setFormPassword(''); setFormRole('user'); setFormError('');
     setShowForm(true);
   };
 
   const openEdit = (u: UserRecord) => {
     setEditUser(u);
-    setFormUsername(u.username); setFormPassword(''); setFormRole(u.role); setFormError('');
+    setFormUsername(u.username); setFormEmail(u.email ?? ''); setFormPassword(''); setFormRole(u.role); setFormError('');
     setShowForm(true);
   };
 
@@ -60,12 +61,12 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
     setFormError(''); setFormLoading(true);
     try {
       if (editUser) {
-        const data: { username: string; password?: string; role: 'admin' | 'user' } = { username: formUsername, role: formRole };
+        const data: { username: string; email: string; password?: string; role: 'admin' | 'user' } = { username: formUsername, email: formEmail, role: formRole };
         if (formPassword) data.password = formPassword;
         await updateUser(editUser.id, data);
-        setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, username: formUsername, role: formRole } : u));
+        setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, username: formUsername, email: formEmail, role: formRole } : u));
       } else {
-        const created = await createUser({ username: formUsername, password: formPassword, role: formRole });
+        const created = await createUser({ username: formUsername, email: formEmail, password: formPassword, role: formRole });
         setUsers(prev => [...prev, { ...created, created_at: new Date().toISOString() }]);
       }
       setShowForm(false);
@@ -141,6 +142,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{u.username}</p>
+                  {u.email && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{u.email}</p>}
                   <span className="text-xs px-1.5 py-0.5 rounded"
                     style={{ background: u.role === 'admin' ? 'rgba(7,217,99,0.1)' : 'rgba(59,130,246,0.1)',
                       color: u.role === 'admin' ? '#07d963' : '#60a5fa' }}>
@@ -202,6 +204,16 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
             </div>
 
             <div className="flex flex-col gap-1.5">
+              <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Email</label>
+              <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)}
+                placeholder="email@exemplo.com"
+                className="rounded-lg px-3 py-2 text-sm outline-none"
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
               <label className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 Senha {editUser && <span style={{ opacity: 0.5 }}>(deixe em branco para manter)</span>}
               </label>
@@ -238,7 +250,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
             )}
 
             <div className="flex gap-2 mt-1">
-              <button type="submit" disabled={formLoading || !formUsername || (!editUser && !formPassword)}
+              <button type="submit" disabled={formLoading || !formUsername || !formEmail || (!editUser && !formPassword)}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold"
                 style={{ background: 'var(--accent)', color: 'var(--text-on-accent)', opacity: formLoading ? 0.6 : 1 }}>
                 {formLoading ? 'Salvando...' : editUser ? 'Salvar' : 'Criar'}
