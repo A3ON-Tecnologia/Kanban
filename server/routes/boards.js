@@ -88,6 +88,7 @@ router.get('/', async (req, res) => {
             priority:     card.priority || '',
             dueDate:      card.due_date || '',
             alertMinutes: card.alert_minutes || 30,
+            notifyByEmail: card.notify_by_email === 1,
             createdAt:    card.created_at,
             createdBy:    card.created_by || null,
             checklist:    checklistData,
@@ -160,13 +161,13 @@ router.put('/:id', async (req, res) => {
         console.log(`    Inserindo card: ${card.id} - ${card.title}`);
         await conn.execute(
           `INSERT INTO cards
-            (id, column_id, title, description, color, priority, due_date, alert_minutes, position, created_at, created_by)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, column_id, title, description, color, priority, due_date, alert_minutes, notify_by_email, position, created_at, created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             card.id, col.id, card.title,
             card.description || '', card.color || '',
             card.priority || '', card.dueDate || '',
-            card.alertMinutes || 30, cardI, card.createdAt,
+            card.alertMinutes || 30, card.notifyByEmail ? 1 : 0, cardI, card.createdAt,
             card.createdBy || null,
           ]
         );
