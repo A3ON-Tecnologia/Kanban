@@ -30,6 +30,7 @@ export interface Card {
   priority: Priority;
   dueDate: string;       // datetime-local string or ''
   alertMinutes: number;  // minutes before due date
+  notifyByEmail?: boolean;
 }
 
 export interface Column {
