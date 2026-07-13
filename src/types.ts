@@ -31,6 +31,7 @@ export interface Card {
   dueDate: string;       // datetime-local string or ''
   alertMinutes: number;  // minutes before due date
   notifyByEmail?: boolean;
+  notifyEmailMinutes?: number | null;
 }
 
 export interface Column {

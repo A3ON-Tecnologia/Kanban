@@ -45,7 +45,7 @@ const COLORS = [
 
 const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard, currentUserId }) => {
   const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const [draft, setDraft] = useState<Card>({ ...card, notifyByEmail: card.notifyByEmail ?? false, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
+  const [draft, setDraft] = useState<Card>({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   const [descMaximized, setDescMaximized] = useState(false);
   const [newCheckItems, setNewCheckItems] = useState<Record<string, string>>({});
   const [newChecklistName, setNewChecklistName] = useState('');
@@ -58,7 +58,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
   // Sempre sincroniza o draft com o card do backend ao abrir ou quando o card mudar
   useEffect(() => {
-    setDraft({ ...card, notifyByEmail: card.notifyByEmail ?? false, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
+    setDraft({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   }, [card]);
 
   useEffect(() => {
@@ -340,7 +340,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                   </select>
                 </div>
                 {/* Notificação por email */}
-                <div className="flex flex-col min-w-[180px] flex-1">
+                <div className="flex flex-col min-w-[220px] flex-1">
                   <Label>✉ Notificar por email</Label>
                   <label
                     className="mt-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm cursor-pointer"
@@ -349,12 +349,26 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     <input
                       type="checkbox"
                       checked={!!draft.notifyByEmail}
-                      onChange={e => update({ notifyByEmail: e.target.checked })}
+                      onChange={e => update({ notifyByEmail: e.target.checked, notifyEmailMinutes: e.target.checked ? (draft.notifyEmailMinutes ?? 1440) : null })}
                       className="w-4 h-4 rounded"
                       style={{ accentColor: 'var(--accent)' }}
                     />
                     <span style={{ color: 'var(--text-muted)' }}>Ativar alerta por email para este card</span>
                   </label>
+                  {draft.notifyByEmail && (
+                    <select
+                      value={draft.notifyEmailMinutes ?? 1440}
+                      onChange={e => update({ notifyEmailMinutes: Number(e.target.value) })}
+                      className="rounded-lg px-3 py-2 text-sm outline-none mt-2"
+                      style={{ ...inputStyle, colorScheme: 'var(--color-scheme)' }}
+                    >
+                      <option value={0}>No dia</option>
+                      <option value={1440}>1 dia antes</option>
+                      <option value={60}>1 hora antes</option>
+                      <option value={30}>30 min antes</option>
+                      <option value={10}>10 min antes</option>
+                    </select>
+                  )}
                 </div>
               </div>
 

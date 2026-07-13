@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS cards (
   due_date       VARCHAR(50)  DEFAULT '',
   alert_minutes  INT          DEFAULT 30,
   notify_by_email TINYINT(1)   NOT NULL DEFAULT 0,
+  notify_email_minutes INT     NULL,
   position       INT          NOT NULL DEFAULT 0,
   created_at     VARCHAR(50)  NOT NULL,
   FOREIGN KEY (column_id) REFERENCES columns_tbl(id) ON DELETE CASCADE

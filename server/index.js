@@ -50,6 +50,19 @@ async function ensureCardNotifyColumn() {
   }
 }
 
+async function ensureCardNotifyEmailMinutesColumn() {
+  const [rows] = await pool.execute(
+    `SELECT COUNT(*) AS count
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE()
+       AND table_name = 'cards'
+       AND column_name = 'notify_email_minutes'`
+  );
+  if (!rows[0] || rows[0].count === 0) {
+    await pool.execute('ALTER TABLE cards ADD COLUMN notify_email_minutes INT NULL AFTER notify_by_email');
+  }
+}
+
 async function ensureUserEmailColumn() {
   const [rows] = await pool.execute(
     `SELECT COUNT(*) AS count
@@ -67,6 +80,7 @@ async function start() {
   try {
     await ensureUserEmailColumn();
     await ensureCardNotifyColumn();
+    await ensureCardNotifyEmailMinutesColumn();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
       console.log(`Acesso local:  http://localhost:${PORT}`);
