@@ -147,6 +147,17 @@ router.put('/:id', async (req, res) => {
       [id, board.title, req.user.id, board.title, req.user.id]
     );
 
+    // O quadro é regravado por completo abaixo. Guarda o estado de notificação
+    // antes do DELETE para não reenviar e-mails já disparados a cada save.
+    const [prevCards] = await conn.execute(
+      `SELECT c.id, c.due_date, c.notify_email_minutes, c.notify_email_sent_at
+         FROM cards c
+         JOIN columns_tbl col ON col.id = c.column_id
+        WHERE col.board_id = ?`,
+      [id]
+    );
+    const prevNotify = new Map(prevCards.map(c => [c.id, c]));
+
     // Apaga colunas antigas (cascata apaga cards e checklist)
     await conn.execute('DELETE FROM columns_tbl WHERE board_id = ?', [id]);
 
@@ -163,6 +174,19 @@ router.put('/:id', async (req, res) => {
         const card = col.cards[cardI];
         const cardCreatedBy = card.createdBy || card.notifyEmailUserId || req.user.id;
         console.log(`    Inserindo card: ${card.id} - ${card.title}`);
+
+        // O destinatário do alerta é sempre quem salvou o quadro por último:
+        // é a conta logada, garantidamente a mesma que tem o SMTP configurado.
+        const notifyUserId = req.user.id;
+
+        // Mantém o "já enviado" só enquanto o agendamento não muda; alterar o
+        // vencimento ou a antecedência re-arma o lembrete para o novo horário.
+        const prev = prevNotify.get(card.id);
+        const sameSchedule = prev
+          && prev.due_date === (card.dueDate || '')
+          && (prev.notify_email_minutes ?? null) === (card.notifyEmailMinutes ?? null);
+        const notifyEmailSentAt = sameSchedule ? prev.notify_email_sent_at : null;
+
         await conn.execute(
           `INSERT INTO cards
             (id, column_id, title, description, color, priority, due_date, alert_minutes, notify_by_email, notify_email_minutes, notify_email_sent_at, notify_email_user_id, position, created_at, created_by)
@@ -171,7 +195,7 @@ router.put('/:id', async (req, res) => {
             card.id, col.id, card.title,
             card.description || '', card.color || '',
             card.priority || '', card.dueDate || '',
-            card.alertMinutes || 30, card.notifyByEmail ? 1 : 0, card.notifyEmailMinutes ?? null, null, card.notifyEmailUserId || null, cardI, card.createdAt,
+            card.alertMinutes || 30, card.notifyByEmail ? 1 : 0, card.notifyEmailMinutes ?? null, notifyEmailSentAt, notifyUserId, cardI, card.createdAt,
             cardCreatedBy || null,
           ]
         );
@@ -212,12 +236,8 @@ router.put('/:id', async (req, res) => {
     }
 
     await conn.commit();
-    try {
-      const cardsToNotify = board.columns.flatMap(col => (col.cards || []).filter(card => card.notifyByEmail)) || [];
-      await global.__processBoardCardNotifications?.(cardsToNotify, board.title, req.user.id);
-    } catch (notifyErr) {
-      console.error('Erro ao processar notificações após salvar quadro:', notifyErr.message);
-    }
+    // O envio fica a cargo do worker (startNotificationWorker), que roda a cada
+    // minuto e respeita o horário de antecedência de cada card.
     console.log('--- FIM PUT /api/boards/:id ---');
     res.json({ success: true });
   } catch (err) {

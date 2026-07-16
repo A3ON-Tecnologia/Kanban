@@ -150,6 +150,10 @@ async function sendCardAlertEmail(card, actorUserId, boardTitle) {
   return true;
 }
 
+// Se o horário de envio já passou há mais de 24h, o lembrete perdeu o sentido.
+// Evita disparar uma enxurrada de e-mails de cards antigos/vencidos.
+const NOTIFY_GRACE_MS = 24 * 60 * 60 * 1000;
+
 async function processEmailNotifications() {
   const globalCfg = getGlobalMailConfig();
   console.log('[notify] worker tick', { globalConfigured: !!globalCfg });
@@ -174,6 +178,7 @@ async function processEmailNotifications() {
     const minutesBefore = Number.isFinite(Number(card.notify_email_minutes)) ? Number(card.notify_email_minutes) : 1440;
     const notifyAt = due.getTime() - (minutesBefore * 60 * 1000);
     if (now < notifyAt) { console.log('[notify] skip not due yet', card.id, { due: due.toISOString(), notifyAt: new Date(notifyAt).toISOString(), now: new Date(now).toISOString(), minutesBefore }); continue; }
+    if (now - notifyAt > NOTIFY_GRACE_MS) { console.log('[notify] skip window expired', card.id, { due: due.toISOString(), notifyAt: new Date(notifyAt).toISOString() }); continue; }
 
     try {
       await sendCardAlertEmail({
@@ -191,20 +196,6 @@ async function processEmailNotifications() {
 }
 
 global.__processEmailNotifications = processEmailNotifications;
-global.__processBoardCardNotifications = async (cards, boardTitle, actorUserId) => {
-  for (const card of cards || []) {
-    if (!card?.notifyByEmail) continue;
-    if (!card?.dueDate) {
-      console.log('[notify] skip no due date on save', { cardId: card.id, cardTitle: card.title });
-      continue;
-    }
-    try {
-      await sendCardAlertEmail(card, actorUserId, boardTitle);
-    } catch (err) {
-      console.error('[notify] save-trigger failed', card.id, err.message);
-    }
-  }
-};
 
 function startNotificationWorker() {
   processEmailNotifications().catch(err => console.error('Email notifications bootstrap:', err.message));
