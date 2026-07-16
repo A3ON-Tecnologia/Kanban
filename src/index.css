@@ -137,6 +137,34 @@ body {
   background-clip: content-box;
 }
 
+/* Modal do cartão: no celular a caixa cabe na tela e o conteúdo largo
+   rola na horizontal por dentro do próprio card. */
+.card-modal-box::-webkit-scrollbar {
+  width: 10px;
+  height: 12px;
+}
+.card-modal-box::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 10px;
+}
+.card-modal-box::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
+@media (max-width: 920px) {
+  .card-modal-box {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .card-modal-content {
+    min-width: 860px;
+  }
+}
+
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);

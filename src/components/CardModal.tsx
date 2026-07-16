@@ -114,7 +114,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
         onClick={e => { if (e.target === e.currentTarget) { onSave(draft); onClose(); } }}
       >
         <div
-          className="w-full max-w-[72rem] max-h-[98vh] overflow-y-auto flex flex-col rounded-xl"
+          className="card-modal-box w-full max-w-[72rem] max-h-[98vh] overflow-y-auto overflow-x-auto flex flex-col rounded-xl"
           style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border)',
@@ -129,7 +129,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
           {draft.color && (
             <div className="h-0.5 rounded-t-xl" style={{ background: `linear-gradient(90deg, ${draft.color}, transparent 70%)` }} />
           )}
-          <div className="p-5 flex flex-col gap-4">
+          <div className="card-modal-content p-5 flex flex-col gap-4">
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-2">
               <textarea
