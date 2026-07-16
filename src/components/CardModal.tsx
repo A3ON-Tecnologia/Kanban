@@ -45,7 +45,7 @@ const COLORS = [
 
 const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard, currentUserId }) => {
   const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const [draft, setDraft] = useState<Card>({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
+  const [draft, setDraft] = useState<Card>({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, notifyEmailUserId: card.notifyEmailUserId ?? currentUserId ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   const [descMaximized, setDescMaximized] = useState(false);
   const [newCheckItems, setNewCheckItems] = useState<Record<string, string>>({});
   const [newChecklistName, setNewChecklistName] = useState('');
@@ -58,7 +58,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
 
   // Sempre sincroniza o draft com o card do backend ao abrir ou quando o card mudar
   useEffect(() => {
-    setDraft({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
+    setDraft({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, notifyEmailUserId: card.notifyEmailUserId ?? currentUserId ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   }, [card]);
 
   useEffect(() => {
@@ -349,7 +349,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     <input
                       type="checkbox"
                       checked={!!draft.notifyByEmail}
-                      onChange={e => update({ notifyByEmail: e.target.checked, notifyEmailMinutes: e.target.checked ? (draft.notifyEmailMinutes ?? 1440) : null })}
+                      onChange={e => update({ notifyByEmail: e.target.checked, notifyEmailMinutes: e.target.checked ? (draft.notifyEmailMinutes ?? 1440) : null, notifyEmailUserId: e.target.checked ? (draft.notifyEmailUserId ?? currentUserId ?? null) : null })}
                       className="w-4 h-4 rounded"
                       style={{ accentColor: 'var(--accent)' }}
                     />

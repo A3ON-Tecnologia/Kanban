@@ -32,6 +32,7 @@ export interface Card {
   alertMinutes: number;  // minutes before due date
   notifyByEmail?: boolean;
   notifyEmailMinutes?: number | null;
+  notifyEmailUserId?: string | null;
 }
 
 export interface Column {

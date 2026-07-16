@@ -121,6 +121,22 @@ body {
   background: var(--border-hover);
 }
 
+/* Barra horizontal do quadro: alvo maior para arrastar entre colunas distantes */
+.board-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 12px;
+}
+.board-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 10px;
+}
+.board-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);

@@ -149,7 +149,7 @@ export async function restoreDeletedCard(id: string): Promise<DeletedCardRecord>
   return res.json();
 }
 
-export interface UserRecord { id: string; username: string; email?: string; role: 'admin' | 'user'; created_at: string; }
+export interface UserRecord { id: string; username: string; email?: string; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; role: 'admin' | 'user'; created_at: string; }
 
 export async function listUsers(): Promise<UserRecord[]> {
   const res = await fetch(`${API_URL}/users`, { headers: authHeaders() });
@@ -157,7 +157,7 @@ export async function listUsers(): Promise<UserRecord[]> {
   return res.json();
 }
 
-export async function createUser(data: { username: string; email: string; password: string; role: 'admin' | 'user' }): Promise<UserRecord> {
+export async function createUser(data: { username: string; email: string; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; password: string; role: 'admin' | 'user' }): Promise<UserRecord> {
   const res = await fetch(`${API_URL}/users`, {
     method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
@@ -166,7 +166,7 @@ export async function createUser(data: { username: string; email: string; passwo
   return json;
 }
 
-export async function updateUser(id: string, data: { username: string; email: string; password?: string; role: 'admin' | 'user' }): Promise<void> {
+export async function updateUser(id: string, data: { username: string; email: string; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; password?: string; role: 'admin' | 'user' }): Promise<void> {
   const res = await fetch(`${API_URL}/users/${id}`, {
     method: 'PUT', headers: authHeaders(), body: JSON.stringify(data),
   });
@@ -179,6 +179,14 @@ export async function deleteUser(id: string): Promise<void> {
     method: 'DELETE', headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Erro ao excluir usuário');
+}
+
+export async function testUserEmail(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/users/${id}/test-email`, {
+    method: 'POST', headers: authHeaders(),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || 'Erro ao enviar email de teste');
 }
 
 export async function getUserBoards(userId: string): Promise<string[]> {

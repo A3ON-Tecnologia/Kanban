@@ -90,6 +90,8 @@ router.get('/', async (req, res) => {
             alertMinutes: card.alert_minutes || 30,
             notifyByEmail: card.notify_by_email === 1,
             notifyEmailMinutes: card.notify_email_minutes ?? null,
+            notifyEmailSentAt: card.notify_email_sent_at || null,
+            notifyEmailUserId: card.notify_email_user_id || null,
             createdAt:    card.created_at,
             createdBy:    card.created_by || null,
             checklist:    checklistData,
@@ -159,17 +161,18 @@ router.put('/:id', async (req, res) => {
 
       for (let cardI = 0; cardI < col.cards.length; cardI++) {
         const card = col.cards[cardI];
+        const cardCreatedBy = card.createdBy || card.notifyEmailUserId || req.user.id;
         console.log(`    Inserindo card: ${card.id} - ${card.title}`);
         await conn.execute(
           `INSERT INTO cards
-            (id, column_id, title, description, color, priority, due_date, alert_minutes, notify_by_email, notify_email_minutes, position, created_at, created_by)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, column_id, title, description, color, priority, due_date, alert_minutes, notify_by_email, notify_email_minutes, notify_email_sent_at, notify_email_user_id, position, created_at, created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             card.id, col.id, card.title,
             card.description || '', card.color || '',
             card.priority || '', card.dueDate || '',
-            card.alertMinutes || 30, card.notifyByEmail ? 1 : 0, card.notifyEmailMinutes ?? null, cardI, card.createdAt,
-            card.createdBy || null,
+            card.alertMinutes || 30, card.notifyByEmail ? 1 : 0, card.notifyEmailMinutes ?? null, null, card.notifyEmailUserId || null, cardI, card.createdAt,
+            cardCreatedBy || null,
           ]
         );
 
@@ -209,6 +212,12 @@ router.put('/:id', async (req, res) => {
     }
 
     await conn.commit();
+    try {
+      const cardsToNotify = board.columns.flatMap(col => (col.cards || []).filter(card => card.notifyByEmail)) || [];
+      await global.__processBoardCardNotifications?.(cardsToNotify, board.title, req.user.id);
+    } catch (notifyErr) {
+      console.error('Erro ao processar notificações após salvar quadro:', notifyErr.message);
+    }
     console.log('--- FIM PUT /api/boards/:id ---');
     res.json({ success: true });
   } catch (err) {

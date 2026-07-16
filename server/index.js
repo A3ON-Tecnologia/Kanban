@@ -8,6 +8,7 @@ const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
 const deletedCardsRouter = require('./routes/deletedCards');
 const pool = require('./db');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 8687;
@@ -63,6 +64,164 @@ async function ensureCardNotifyEmailMinutesColumn() {
   }
 }
 
+function createMailTransportFromConfig(cfg) {
+  if (!cfg?.host || !cfg?.user || !cfg?.pass) return null;
+  return nodemailer.createTransport({
+    host: cfg.host,
+    port: Number(cfg.port || 587),
+    secure: !!cfg.secure,
+    auth: { user: cfg.user, pass: cfg.pass },
+  });
+}
+
+function getGlobalMailConfig() {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  return { host, port: Number(process.env.SMTP_PORT || 587), secure: String(process.env.SMTP_SECURE || 'false') === 'true', user, pass, from: process.env.MAIL_FROM || user };
+}
+
+async function ensureCardNotifySentAtColumn() {
+  const [rows] = await pool.execute(
+    `SELECT COUNT(*) AS count
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE()
+       AND table_name = 'cards'
+       AND column_name = 'notify_email_sent_at'`
+  );
+  if (!rows[0] || rows[0].count === 0) {
+    await pool.execute('ALTER TABLE cards ADD COLUMN notify_email_sent_at DATETIME NULL AFTER notify_email_minutes');
+  }
+}
+
+async function ensureCardNotifyUserColumn() {
+  const [rows] = await pool.execute(
+    `SELECT COUNT(*) AS count
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE()
+       AND table_name = 'cards'
+       AND column_name = 'notify_email_user_id'`
+  );
+  if (!rows[0] || rows[0].count === 0) {
+    await pool.execute('ALTER TABLE cards ADD COLUMN notify_email_user_id VARCHAR(36) NULL AFTER notify_email_sent_at');
+  }
+}
+
+async function sendCardAlertEmail(card, actorUserId, boardTitle) {
+  const recipientUserId = card.notifyEmailUserId || card.createdBy || actorUserId || null;
+  const [userRows] = await pool.execute(
+    'SELECT id, username, email, smtp_host, smtp_port, smtp_secure, smtp_user, smtp_pass FROM users WHERE id = ?',
+    [recipientUserId]
+  );
+  const recipientUser = userRows[0];
+  const globalCfg = getGlobalMailConfig();
+  const cfg = recipientUser?.smtp_host && recipientUser?.smtp_user && recipientUser?.smtp_pass
+    ? { host: recipientUser.smtp_host, port: recipientUser.smtp_port || 587, secure: !!recipientUser.smtp_secure, user: recipientUser.smtp_user, pass: recipientUser.smtp_pass, from: recipientUser.smtp_user }
+    : globalCfg;
+
+  const transporter = createMailTransportFromConfig(cfg);
+  if (!transporter) {
+    console.log('[notify] skip no smtp', { cardId: card.id, cardTitle: card.title, recipientUserId, cfg, globalConfigured: !!globalCfg });
+    return false;
+  }
+
+  const recipient = recipientUser?.email || process.env.MAIL_TO || null;
+  if (!recipient) {
+    console.log('[notify] skip no recipient email', { cardId: card.id, cardTitle: card.title, recipientUserId, createdBy: card.createdBy });
+    return false;
+  }
+
+  const due = card.dueDate ? new Date(card.dueDate) : null;
+  const minutesBefore = Number.isFinite(Number(card.notifyEmailMinutes)) ? Number(card.notifyEmailMinutes) : 1440;
+  const label = minutesBefore === 0 ? 'no dia' : minutesBefore >= 1440 ? `${minutesBefore / 1440} dia(s) antes` : minutesBefore >= 60 ? `${minutesBefore / 60} hora(s) antes` : `${minutesBefore} min antes`;
+  const dueText = due && !Number.isNaN(due.getTime()) ? due.toLocaleString('pt-BR') : 'sem vencimento';
+
+  console.log('[notify] sending', { cardId: card.id, recipient, recipientUserId, minutesBefore, due: due?.toISOString?.(), cfgUser: cfg.user, cfgHost: cfg.host });
+  await transporter.sendMail({
+    from: cfg.from,
+    to: recipient,
+    subject: `Lembrete: ${card.title} vence em breve`,
+    text: `Olá ${recipientUser?.username || ''},\n\nO card "${card.title}" do quadro "${boardTitle || 'Kanban'}" está programado para lembrar ${label}.\nVencimento: ${dueText}\n\nAcesse o Kanban para acompanhar o status.`,
+  });
+
+  await pool.execute('UPDATE cards SET notify_email_sent_at = NOW() WHERE id = ?', [card.id]);
+  console.log('[notify] sent', card.id);
+  return true;
+}
+
+async function processEmailNotifications() {
+  const globalCfg = getGlobalMailConfig();
+  console.log('[notify] worker tick', { globalConfigured: !!globalCfg });
+
+  const [cards] = await pool.execute(
+    `SELECT c.id, c.title, c.due_date, c.notify_email_minutes, c.notify_email_sent_at, c.notify_email_user_id, c.created_by, c.column_id, b.title AS board_title, u.email AS recipient_email, u.username AS recipient_username, u.smtp_host, u.smtp_port, u.smtp_secure, u.smtp_user, u.smtp_pass
+     FROM cards c
+     JOIN columns_tbl col ON col.id = c.column_id
+     JOIN boards b ON b.id = col.board_id
+     LEFT JOIN users u ON u.id = COALESCE(c.notify_email_user_id, c.created_by)
+     WHERE c.notify_by_email = 1
+       AND (c.created_by IS NOT NULL OR c.notify_email_user_id IS NOT NULL)`
+  );
+
+  const now = Date.now();
+  for (const card of cards) {
+    if (card.notify_email_sent_at) { console.log('[notify] skip already sent', card.id); continue; }
+    if (!card.due_date) { console.log('[notify] skip no due date', card.id); continue; }
+
+    const due = new Date(card.due_date);
+    if (Number.isNaN(due.getTime())) { console.log('[notify] skip invalid due date', card.id, card.due_date); continue; }
+    const minutesBefore = Number.isFinite(Number(card.notify_email_minutes)) ? Number(card.notify_email_minutes) : 1440;
+    const notifyAt = due.getTime() - (minutesBefore * 60 * 1000);
+    if (now < notifyAt) { console.log('[notify] skip not due yet', card.id, { due: due.toISOString(), notifyAt: new Date(notifyAt).toISOString(), now: new Date(now).toISOString(), minutesBefore }); continue; }
+
+    try {
+      await sendCardAlertEmail({
+        id: card.id,
+        title: card.title,
+        createdBy: card.created_by,
+        notifyEmailUserId: card.notify_email_user_id,
+        notifyEmailMinutes: card.notify_email_minutes,
+        dueDate: card.due_date,
+      }, card.notify_email_user_id || card.created_by, card.board_title);
+    } catch (err) {
+      console.error('[notify] send failed', card.id, err.message);
+    }
+  }
+}
+
+global.__processEmailNotifications = processEmailNotifications;
+global.__processBoardCardNotifications = async (cards, boardTitle, actorUserId) => {
+  for (const card of cards || []) {
+    if (!card?.notifyByEmail) continue;
+    if (!card?.dueDate) {
+      console.log('[notify] skip no due date on save', { cardId: card.id, cardTitle: card.title });
+      continue;
+    }
+    try {
+      await sendCardAlertEmail(card, actorUserId, boardTitle);
+    } catch (err) {
+      console.error('[notify] save-trigger failed', card.id, err.message);
+    }
+  }
+};
+
+function startNotificationWorker() {
+  processEmailNotifications().catch(err => console.error('Email notifications bootstrap:', err.message));
+  setInterval(() => {
+    processEmailNotifications().catch(err => console.error('Email notifications tick:', err.message));
+  }, 60 * 1000);
+}
+
+app.post('/api/debug/run-notifications', async (req, res) => {
+  try {
+    await processEmailNotifications();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 async function ensureUserEmailColumn() {
   const [rows] = await pool.execute(
     `SELECT COUNT(*) AS count
@@ -76,16 +235,44 @@ async function ensureUserEmailColumn() {
   }
 }
 
+async function ensureUserSmtpColumns() {
+  const columns = [
+    ['smtp_host', 'VARCHAR(255) NULL AFTER email'],
+    ['smtp_port', 'INT NULL AFTER smtp_host'],
+    ['smtp_secure', 'TINYINT(1) NOT NULL DEFAULT 0 AFTER smtp_port'],
+    ['smtp_user', 'VARCHAR(255) NULL AFTER smtp_secure'],
+    ['smtp_pass', 'VARCHAR(255) NULL AFTER smtp_user'],
+  ];
+
+  for (const [column, ddl] of columns) {
+    const [rows] = await pool.execute(
+      `SELECT COUNT(*) AS count
+       FROM information_schema.columns
+       WHERE table_schema = DATABASE()
+         AND table_name = 'users'
+         AND column_name = ?`,
+      [column]
+    );
+    if (!rows[0] || rows[0].count === 0) {
+      await pool.execute(`ALTER TABLE users ADD COLUMN ${column} ${ddl}`);
+    }
+  }
+}
+
 async function start() {
   try {
     await ensureUserEmailColumn();
+    await ensureUserSmtpColumns();
     await ensureCardNotifyColumn();
     await ensureCardNotifyEmailMinutesColumn();
+    await ensureCardNotifyUserColumn();
+    await ensureCardNotifySentAtColumn();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
       console.log(`Acesso local:  http://localhost:${PORT}`);
       console.log(`Acesso na rede: http://<IP-DO-SERVIDOR>:${PORT}`);
     });
+    startNotificationWorker();
   } catch (err) {
     console.error('Falha ao iniciar servidor:', err.message);
     process.exit(1);

@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS cards (
   alert_minutes  INT          DEFAULT 30,
   notify_by_email TINYINT(1)   NOT NULL DEFAULT 0,
   notify_email_minutes INT     NULL,
+  notify_email_sent_at DATETIME NULL,
+  notify_email_user_id VARCHAR(36) NULL,
   position       INT          NOT NULL DEFAULT 0,
   created_at     VARCHAR(50)  NOT NULL,
   FOREIGN KEY (column_id) REFERENCES columns_tbl(id) ON DELETE CASCADE

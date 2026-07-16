@@ -112,6 +112,9 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       priority: '',
       dueDate: '',
       alertMinutes: 30,
+      notifyByEmail: false,
+      notifyEmailMinutes: null,
+      notifyEmailUserId: currentUserId ?? null,
     };
     persist({
       ...board,
@@ -258,6 +261,9 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       priority: '',
       dueDate: '',
       alertMinutes: 30,
+      notifyByEmail: false,
+      notifyEmailMinutes: null,
+      notifyEmailUserId: currentUserId ?? null,
     };
     const updatedBoard: Board = {
       ...targetBoard,
@@ -275,7 +281,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
   const totalCards = board.columns.reduce((acc, c) => acc + c.cards.length, 0);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)' }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <header
         className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
@@ -397,7 +403,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       </header>
 
       {/* Board */}
-      <main className="flex-1 p-6 overflow-x-auto">
+      <main className="flex-1 min-h-0 p-6 overflow-auto board-scroll">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
