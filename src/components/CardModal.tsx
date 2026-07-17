@@ -99,6 +99,18 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
   const totalCount = allItems.length;
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
+  // Checklists ordenados por data de criação (mais recentes primeiro).
+  // Checklists antigos sem createdAt caem no fim, mantendo a ordem de inserção invertida.
+  const sortedChecklist = draft.checklist
+    .map((cl: Checklist, index: number) => ({ cl, index }))
+    .sort((a, b) => {
+      const ca = a.cl.createdAt ?? '';
+      const cb = b.cl.createdAt ?? '';
+      if (ca !== cb) return cb.localeCompare(ca);
+      return b.index - a.index;
+    })
+    .map(({ cl }) => cl);
+
   const inputStyle = {
     background: 'var(--bg-input)',
     border: '1px solid var(--border)',
@@ -401,7 +413,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     onChange={e => setNewChecklistName(e.target.value)}
                     onKeyDown={e => {
                       if (e.key === 'Enter' && newChecklistName.trim()) {
-                        update({ checklist: [...draft.checklist, { id: uuidv4(), title: newChecklistName.trim(), items: [] }] });
+                        update({ checklist: [...draft.checklist, { id: uuidv4(), title: newChecklistName.trim(), items: [], createdAt: new Date().toISOString() }] });
                         setNewChecklistName(''); setShowNewChecklist(false);
                       } else if (e.key === 'Escape') { setNewChecklistName(''); setShowNewChecklist(false); }
                     }}
@@ -413,7 +425,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                   <button
                     onClick={() => {
                       if (!newChecklistName.trim()) return;
-                      update({ checklist: [...draft.checklist, { id: uuidv4(), title: newChecklistName.trim(), items: [] }] });
+                      update({ checklist: [...draft.checklist, { id: uuidv4(), title: newChecklistName.trim(), items: [], createdAt: new Date().toISOString() }] });
                       setNewChecklistName(''); setShowNewChecklist(false);
                     }}
                     className="px-3 py-2 rounded-lg text-sm font-medium transition-all"
@@ -432,7 +444,7 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
               )}
 
               {/* Each checklist */}
-              {draft.checklist.map((cl: Checklist) => {
+              {sortedChecklist.map((cl: Checklist) => {
                 const clDone = cl.items.filter((i: ChecklistItem) => i.done).length;
                 const clTotal = cl.items.length;
                 const clProgress = clTotal > 0 ? Math.round((clDone / clTotal) * 100) : 0;

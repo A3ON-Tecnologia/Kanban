@@ -8,6 +8,7 @@ export interface Checklist {
   id: string;
   title: string;
   items: ChecklistItem[];
+  createdAt?: string; // ISO date — used to order checklists (mais recentes primeiro)
 }
 
 export interface Comment {
