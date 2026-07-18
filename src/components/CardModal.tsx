@@ -62,9 +62,16 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
   }, [card]);
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') { onSave(draft); onClose(); } };
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onSave(draft); onClose(); }
+      else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        onSave(draft);
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
   }, [draft, onClose, onSave]);
 
   const update = (partial: Partial<Card>) => setDraft(d => ({ ...d, ...partial }));
@@ -275,6 +282,18 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     ✓
                   </button>
                 </div>
+                {/* Salvar card — logo abaixo de adicionar comentário */}
+                <button
+                  onClick={() => { onSave(draft); onClose(); }}
+                  className="mt-1 w-full py-2 rounded-lg text-sm font-semibold transition-all"
+                  style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
+                  title="Salvar card (Ctrl+S)"
+                >
+                  Salvar card
+                  <span className="ml-2 font-normal opacity-70" style={{ fontSize: '10px' }}>Ctrl+S</span>
+                </button>
               </div>
             </div>
 
@@ -559,15 +578,6 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     Excluir
                   </button>
                 )}
-                <button
-                  onClick={() => { onSave(draft); onClose(); }}
-                  className="text-sm px-4 py-1.5 rounded-lg font-semibold transition-all"
-                  style={{ background: 'var(--accent)', color: 'var(--text-on-accent)' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
-                >
-                  Salvar
-                </button>
               </div>
             </div>
           </div>
