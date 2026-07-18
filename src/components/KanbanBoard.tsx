@@ -6,8 +6,9 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  closestCenter,
 } from '@dnd-kit/core';
-import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core';
+import type { DragEndEvent, DragOverEvent, DragStartEvent, CollisionDetection } from '@dnd-kit/core';
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -47,6 +48,21 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
+
+  // Detecção de colisão dependente do tipo:
+  // - Arrastando uma COLUNA: considera apenas colunas (ignora cartões e zonas col-),
+  //   garantindo que over.id seja sempre um id de coluna válido.
+  // - Arrastando um CARTÃO: comportamento normal (cartões + zonas de coluna).
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    const activeType = args.active.data.current?.type;
+    if (activeType === 'column') {
+      const columnContainers = args.droppableContainers.filter(
+        c => c.data.current?.type === 'column'
+      );
+      return closestCenter({ ...args, droppableContainers: columnContainers });
+    }
+    return closestCorners(args);
+  }, []);
 
   // Sync apenas quando trocar de quadro (não a cada save, evitando sobrescrever mudanças locais)
   React.useEffect(() => {
@@ -214,9 +230,18 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
 
     // Reorder columns
     if (activeType === 'column') {
+      // Resolve over.id para um id de coluna válido, aceitando também
+      // zonas droppable "col-<id>" ou cartões (via columnId do data).
+      let overColumnId = over.id.toString();
+      if (overColumnId.startsWith('col-')) {
+        overColumnId = overColumnId.slice('col-'.length);
+      } else if (over.data.current?.type === 'card') {
+        overColumnId = over.data.current?.columnId as string;
+      }
+
       const oldIndex = board.columns.findIndex(c => c.id === active.id);
-      const newIndex = board.columns.findIndex(c => c.id === over.id);
-      if (oldIndex !== newIndex) {
+      const newIndex = board.columns.findIndex(c => c.id === overColumnId);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         persist({ ...board, columns: arrayMove(board.columns, oldIndex, newIndex) });
       }
       return;
@@ -406,7 +431,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
       <main className="flex-1 min-h-0 p-3 sm:p-6 overflow-auto board-scroll">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={collisionDetection}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
