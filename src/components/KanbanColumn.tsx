@@ -97,6 +97,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
         ...style,
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border)',
+        maxHeight: 'calc(100vh - 120px)',
       }}
       className="flex-shrink-0 w-[300px] flex flex-col rounded-xl"
     >
@@ -213,7 +214,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
       </div>
 
       {/* Cards */}
-      <div ref={setDroppableRef} className="flex-1 px-3 py-3 flex flex-col gap-3 min-h-4">
+      <div ref={setDroppableRef} className="flex-1 min-h-0 overflow-y-auto board-scroll px-3 py-3 flex flex-col gap-3">
         <SortableContext items={column.cards.map((c: Card) => c.id)} strategy={verticalListSortingStrategy}>
           {column.cards.map((card: Card) => (
             <KanbanCard

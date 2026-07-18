@@ -70,7 +70,7 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
           : hovered ? 'var(--shadow-hover)' : 'var(--shadow-card)',
         opacity: isDragging ? 0.9 : 1,
       }}
-      className={`rounded-xl cursor-pointer select-none overflow-hidden${card.color ? ' kanban-card-has-color' : ''}`}
+      className={`flex-shrink-0 rounded-xl cursor-pointer select-none overflow-hidden${card.color ? ' kanban-card-has-color' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => onOpen(card.id, columnId)}
