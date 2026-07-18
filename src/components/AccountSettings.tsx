@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getMyProfile, updateMyProfile, changeMyPassword, testMyEmail, testMySms } from '../api';
+import { getMyProfile, updateMyProfile, changeMyPassword, testMyEmail } from '../api';
 import { ThemeToggle } from '../context/ThemeContext';
 
 interface Props {
@@ -18,7 +18,6 @@ const AccountSettings: React.FC<Props> = ({ username, onBack }) => {
 
   // Perfil
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [smtpHost, setSmtpHost] = useState('');
   const [smtpPort, setSmtpPort] = useState('587');
   const [smtpSecure, setSmtpSecure] = useState(false);
@@ -41,7 +40,6 @@ const AccountSettings: React.FC<Props> = ({ username, onBack }) => {
     getMyProfile()
       .then(u => {
         setEmail(u.email ?? '');
-        setPhone(u.phone ?? '');
         setSmtpHost(u.smtp_host ?? '');
         setSmtpPort(String(u.smtp_port ?? 587));
         setSmtpSecure(!!u.smtp_secure);
@@ -58,7 +56,6 @@ const AccountSettings: React.FC<Props> = ({ username, onBack }) => {
     try {
       await updateMyProfile({
         email,
-        phone,
         smtp_host: smtpHost,
         smtp_port: Number(smtpPort || 587),
         smtp_secure: smtpSecure,
@@ -80,18 +77,6 @@ const AccountSettings: React.FC<Props> = ({ username, onBack }) => {
       setProfileMsg('Email de teste enviado. Verifique sua caixa de entrada.');
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : 'Erro ao enviar email de teste');
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const handleTestSms = async () => {
-    setProfileError(''); setProfileMsg(''); setTesting(true);
-    try {
-      await testMySms();
-      setProfileMsg('SMS de teste enviado.');
-    } catch (err) {
-      setProfileError(err instanceof Error ? err.message : 'Erro ao enviar SMS de teste');
     } finally {
       setTesting(false);
     }
@@ -151,21 +136,22 @@ const AccountSettings: React.FC<Props> = ({ username, onBack }) => {
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
               <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>Perfil e notificações</p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className={fieldLabel} style={fieldLabelStyle}>Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="email@exemplo.com" className="rounded-lg px-3 py-2 text-sm outline-none" style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className={fieldLabel} style={fieldLabelStyle}>Telefone (SMS)</label>
-                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                    placeholder="+55 11 99999-8888" className="rounded-lg px-3 py-2 text-sm outline-none" style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
-                </div>
+              <div className="flex flex-col gap-1.5">
+                <label className={fieldLabel} style={fieldLabelStyle}>Usuário (login)</label>
+                <input value={username ?? ''} readOnly disabled
+                  className="rounded-lg px-3 py-2 text-sm outline-none"
+                  style={{ ...inputStyle, opacity: 0.7, cursor: 'not-allowed' }} />
+                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  É com este nome que você entra no sistema. Para alterá-lo, fale com um administrador.
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className={fieldLabel} style={fieldLabelStyle}>Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="email@exemplo.com" className="rounded-lg px-3 py-2 text-sm outline-none" style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
               </div>
 
               {/* SMTP */}
@@ -221,11 +207,6 @@ const AccountSettings: React.FC<Props> = ({ username, onBack }) => {
                   className="flex-1 min-w-[130px] py-2 rounded-lg text-sm font-semibold"
                   style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}>
                   {testing ? 'Enviando...' : 'Testar email'}
-                </button>
-                <button type="button" onClick={handleTestSms} disabled={testing || savingProfile}
-                  className="flex-1 min-w-[130px] py-2 rounded-lg text-sm font-semibold"
-                  style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}>
-                  {testing ? 'Enviando...' : 'Testar SMS'}
                 </button>
                 <button type="submit" disabled={savingProfile || !email}
                   className="flex-1 min-w-[130px] py-2 rounded-lg text-sm font-semibold"

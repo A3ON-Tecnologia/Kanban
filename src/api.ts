@@ -149,7 +149,7 @@ export async function restoreDeletedCard(id: string): Promise<DeletedCardRecord>
   return res.json();
 }
 
-export interface UserRecord { id: string; username: string; email?: string; phone?: string | null; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; role: 'admin' | 'user'; created_at: string; }
+export interface UserRecord { id: string; username: string; email?: string; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; role: 'admin' | 'user'; created_at: string; }
 
 export async function listUsers(): Promise<UserRecord[]> {
   const res = await fetch(`${API_URL}/users`, { headers: authHeaders() });
@@ -157,7 +157,7 @@ export async function listUsers(): Promise<UserRecord[]> {
   return res.json();
 }
 
-export async function createUser(data: { username: string; email: string; phone?: string | null; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; password: string; role: 'admin' | 'user' }): Promise<UserRecord> {
+export async function createUser(data: { username: string; email: string; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; password: string; role: 'admin' | 'user' }): Promise<UserRecord> {
   const res = await fetch(`${API_URL}/users`, {
     method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
@@ -166,7 +166,7 @@ export async function createUser(data: { username: string; email: string; phone?
   return json;
 }
 
-export async function updateUser(id: string, data: { username: string; email: string; phone?: string | null; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; password?: string; role: 'admin' | 'user' }): Promise<void> {
+export async function updateUser(id: string, data: { username: string; email: string; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null; password?: string; role: 'admin' | 'user' }): Promise<void> {
   const res = await fetch(`${API_URL}/users/${id}`, {
     method: 'PUT', headers: authHeaders(), body: JSON.stringify(data),
   });
@@ -187,14 +187,6 @@ export async function testUserEmail(id: string): Promise<void> {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json.error || 'Erro ao enviar email de teste');
-}
-
-export async function testUserSms(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/users/${id}/test-sms`, {
-    method: 'POST', headers: authHeaders(),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.error || 'Erro ao enviar SMS de teste');
 }
 
 // ===== Self-service: o próprio usuário edita seus dados =====
@@ -225,12 +217,6 @@ export async function testMyEmail(): Promise<void> {
   const res = await fetch(`${API_URL}/users/me/test-email`, { method: 'POST', headers: authHeaders() });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json.error || 'Erro ao enviar email de teste');
-}
-
-export async function testMySms(): Promise<void> {
-  const res = await fetch(`${API_URL}/users/me/test-sms`, { method: 'POST', headers: authHeaders() });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.error || 'Erro ao enviar SMS de teste');
 }
 
 export async function getUserBoards(userId: string): Promise<string[]> {

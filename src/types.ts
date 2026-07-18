@@ -34,8 +34,6 @@ export interface Card {
   notifyByEmail?: boolean;
   notifyEmailMinutes?: number | null;
   notifyEmailUserId?: string | null;
-  notifyBySms?: boolean;
-  notifySmsMinutes?: number | null;
 }
 
 export interface Column {

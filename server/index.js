@@ -9,7 +9,6 @@ const usersRouter = require('./routes/users');
 const deletedCardsRouter = require('./routes/deletedCards');
 const pool = require('./db');
 const nodemailer = require('nodemailer');
-const { getSmsConfig, normalizePhone, sendSms } = require('./sms');
 
 const app = express();
 const PORT = process.env.PORT || 8687;
@@ -109,29 +108,6 @@ async function ensureCardNotifyUserColumn() {
   }
 }
 
-// Colunas do alerta por SMS — espelham as de e-mail, mas são independentes:
-// um card pode ter e-mail, SMS, os dois, ou nenhum.
-async function ensureCardSmsColumns() {
-  const columns = [
-    ['notify_by_sms', 'TINYINT(1) NOT NULL DEFAULT 0 AFTER notify_email_user_id'],
-    ['notify_sms_minutes', 'INT NULL AFTER notify_by_sms'],
-    ['notify_sms_sent_at', 'DATETIME NULL AFTER notify_sms_minutes'],
-  ];
-  for (const [column, ddl] of columns) {
-    const [rows] = await pool.execute(
-      `SELECT COUNT(*) AS count
-       FROM information_schema.columns
-       WHERE table_schema = DATABASE()
-         AND table_name = 'cards'
-         AND column_name = ?`,
-      [column]
-    );
-    if (!rows[0] || rows[0].count === 0) {
-      await pool.execute(`ALTER TABLE cards ADD COLUMN ${column} ${ddl}`);
-    }
-  }
-}
-
 async function sendCardAlertEmail(card, actorUserId, boardTitle) {
   const recipientUserId = card.notifyEmailUserId || card.createdBy || actorUserId || null;
   const [userRows] = await pool.execute(
@@ -219,95 +195,18 @@ async function processEmailNotifications() {
   }
 }
 
-// ===== Notificação por SMS =====
-// As primitivas do provedor (getSmsConfig/normalizePhone/sendSms) ficam em ./sms.js.
-async function sendCardAlertSms(card, actorUserId, boardTitle) {
-  const cfg = getSmsConfig();
-  if (!cfg) {
-    console.log('[sms] skip no provider config', { cardId: card.id, cardTitle: card.title });
-    return false;
-  }
-  const recipientUserId = card.notifyEmailUserId || card.createdBy || actorUserId || null;
-  const [userRows] = await pool.execute(
-    'SELECT id, username, phone FROM users WHERE id = ?',
-    [recipientUserId]
-  );
-  const recipientUser = userRows[0];
-  const to = normalizePhone(recipientUser?.phone);
-  if (!to) {
-    console.log('[sms] skip no recipient phone', { cardId: card.id, cardTitle: card.title, recipientUserId });
-    return false;
-  }
-
-  const due = card.dueDate ? new Date(card.dueDate) : null;
-  const dueText = due && !Number.isNaN(due.getTime()) ? due.toLocaleString('pt-BR') : 'sem vencimento';
-  const body = `Kanban: o card "${card.title}" (${boardTitle || 'Kanban'}) vence em ${dueText}.`;
-
-  console.log('[sms] sending', { cardId: card.id, to, recipientUserId });
-  await sendSms(cfg, to, body);
-  await pool.execute('UPDATE cards SET notify_sms_sent_at = NOW() WHERE id = ?', [card.id]);
-  console.log('[sms] sent', card.id);
-  return true;
-}
-
-async function processSmsNotifications() {
-  const cfg = getSmsConfig();
-  console.log('[sms] worker tick', { configured: !!cfg });
-  if (!cfg) return;
-
-  const [cards] = await pool.execute(
-    `SELECT c.id, c.title, c.due_date, c.notify_sms_minutes, c.notify_sms_sent_at, c.notify_email_user_id, c.created_by, c.column_id, b.title AS board_title, u.phone AS recipient_phone
-     FROM cards c
-     JOIN columns_tbl col ON col.id = c.column_id
-     JOIN boards b ON b.id = col.board_id
-     LEFT JOIN users u ON u.id = COALESCE(c.notify_email_user_id, c.created_by)
-     WHERE c.notify_by_sms = 1
-       AND (c.created_by IS NOT NULL OR c.notify_email_user_id IS NOT NULL)`
-  );
-
-  const now = Date.now();
-  for (const card of cards) {
-    if (card.notify_sms_sent_at) { console.log('[sms] skip already sent', card.id); continue; }
-    if (!card.due_date) { console.log('[sms] skip no due date', card.id); continue; }
-
-    const due = new Date(card.due_date);
-    if (Number.isNaN(due.getTime())) { console.log('[sms] skip invalid due date', card.id, card.due_date); continue; }
-    const minutesBefore = Number.isFinite(Number(card.notify_sms_minutes)) ? Number(card.notify_sms_minutes) : 1440;
-    const notifyAt = due.getTime() - (minutesBefore * 60 * 1000);
-    if (now < notifyAt) { console.log('[sms] skip not due yet', card.id); continue; }
-    if (now - notifyAt > NOTIFY_GRACE_MS) { console.log('[sms] skip window expired', card.id); continue; }
-
-    try {
-      await sendCardAlertSms({
-        id: card.id,
-        title: card.title,
-        createdBy: card.created_by,
-        notifyEmailUserId: card.notify_email_user_id,
-        notifySmsMinutes: card.notify_sms_minutes,
-        dueDate: card.due_date,
-      }, card.notify_email_user_id || card.created_by, card.board_title);
-    } catch (err) {
-      console.error('[sms] send failed', card.id, err.message);
-    }
-  }
-}
-
-global.__processSmsNotifications = processSmsNotifications;
 global.__processEmailNotifications = processEmailNotifications;
 
 function startNotificationWorker() {
   processEmailNotifications().catch(err => console.error('Email notifications bootstrap:', err.message));
-  processSmsNotifications().catch(err => console.error('SMS notifications bootstrap:', err.message));
   setInterval(() => {
     processEmailNotifications().catch(err => console.error('Email notifications tick:', err.message));
-    processSmsNotifications().catch(err => console.error('SMS notifications tick:', err.message));
   }, 60 * 1000);
 }
 
 app.post('/api/debug/run-notifications', async (req, res) => {
   try {
     await processEmailNotifications();
-    await processSmsNotifications();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -324,20 +223,6 @@ async function ensureUserEmailColumn() {
   );
   if (!rows[0] || rows[0].count === 0) {
     await pool.execute('ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL AFTER username');
-  }
-}
-
-// Telefone do usuário — destinatário do alerta por SMS (formato E.164, ex.: +5511999998888).
-async function ensureUserPhoneColumn() {
-  const [rows] = await pool.execute(
-    `SELECT COUNT(*) AS count
-     FROM information_schema.columns
-     WHERE table_schema = DATABASE()
-       AND table_name = 'users'
-       AND column_name = 'phone'`
-  );
-  if (!rows[0] || rows[0].count === 0) {
-    await pool.execute('ALTER TABLE users ADD COLUMN phone VARCHAR(32) NULL AFTER email');
   }
 }
 
@@ -368,13 +253,11 @@ async function ensureUserSmtpColumns() {
 async function start() {
   try {
     await ensureUserEmailColumn();
-    await ensureUserPhoneColumn();
     await ensureUserSmtpColumns();
     await ensureCardNotifyColumn();
     await ensureCardNotifyEmailMinutesColumn();
     await ensureCardNotifyUserColumn();
     await ensureCardNotifySentAtColumn();
-    await ensureCardSmsColumns();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
       console.log(`Acesso local:  http://localhost:${PORT}`);

@@ -92,9 +92,6 @@ router.get('/', async (req, res) => {
             notifyEmailMinutes: card.notify_email_minutes ?? null,
             notifyEmailSentAt: card.notify_email_sent_at || null,
             notifyEmailUserId: card.notify_email_user_id || null,
-            notifyBySms: card.notify_by_sms === 1,
-            notifySmsMinutes: card.notify_sms_minutes ?? null,
-            notifySmsSentAt: card.notify_sms_sent_at || null,
             createdAt:    card.created_at,
             createdBy:    card.created_by || null,
             checklist:    checklistData,
@@ -153,7 +150,7 @@ router.put('/:id', async (req, res) => {
     // O quadro é regravado por completo abaixo. Guarda o estado de notificação
     // antes do DELETE para não reenviar e-mails já disparados a cada save.
     const [prevCards] = await conn.execute(
-      `SELECT c.id, c.due_date, c.notify_email_minutes, c.notify_email_sent_at, c.notify_sms_minutes, c.notify_sms_sent_at
+      `SELECT c.id, c.due_date, c.notify_email_minutes, c.notify_email_sent_at
          FROM cards c
          JOIN columns_tbl col ON col.id = c.column_id
         WHERE col.board_id = ?`,
@@ -190,22 +187,15 @@ router.put('/:id', async (req, res) => {
           && (prev.notify_email_minutes ?? null) === (card.notifyEmailMinutes ?? null);
         const notifyEmailSentAt = sameSchedule ? prev.notify_email_sent_at : null;
 
-        // Mesma lógica de re-armar para o SMS, com a antecedência própria dele.
-        const sameSmsSchedule = prev
-          && prev.due_date === (card.dueDate || '')
-          && (prev.notify_sms_minutes ?? null) === (card.notifySmsMinutes ?? null);
-        const notifySmsSentAt = sameSmsSchedule ? prev.notify_sms_sent_at : null;
-
         await conn.execute(
           `INSERT INTO cards
-            (id, column_id, title, description, color, priority, due_date, alert_minutes, notify_by_email, notify_email_minutes, notify_email_sent_at, notify_email_user_id, notify_by_sms, notify_sms_minutes, notify_sms_sent_at, position, created_at, created_by)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, column_id, title, description, color, priority, due_date, alert_minutes, notify_by_email, notify_email_minutes, notify_email_sent_at, notify_email_user_id, position, created_at, created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             card.id, col.id, card.title,
             card.description || '', card.color || '',
             card.priority || '', card.dueDate || '',
             card.alertMinutes || 30, card.notifyByEmail ? 1 : 0, card.notifyEmailMinutes ?? null, notifyEmailSentAt, notifyUserId,
-            card.notifyBySms ? 1 : 0, card.notifySmsMinutes ?? null, notifySmsSentAt,
             cardI, card.createdAt,
             cardCreatedBy || null,
           ]
