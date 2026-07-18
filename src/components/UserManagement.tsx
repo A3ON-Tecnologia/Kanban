@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Board } from '../types';
 import type { UserRecord } from '../api';
-import { listUsers, createUser, updateUser, deleteUser, testUserEmail, getUserBoards, setUserBoards } from '../api';
+import { listUsers, createUser, updateUser, deleteUser, testUserEmail, testUserSms, getUserBoards, setUserBoards } from '../api';
 import ConfirmModal from './ConfirmModal';
 import { ThemeToggle } from '../context/ThemeContext';
 
@@ -22,6 +22,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
   const [editUser, setEditUser] = useState<UserRecord | null>(null);
   const [formUsername, setFormUsername] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formPhone, setFormPhone] = useState('');
   const [formSmtpHost, setFormSmtpHost] = useState('');
   const [formSmtpPort, setFormSmtpPort] = useState('587');
   const [formSmtpSecure, setFormSmtpSecure] = useState(false);
@@ -44,13 +45,13 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
 
   const openCreate = () => {
     setEditUser(null);
-    setFormUsername(''); setFormEmail(''); setFormSmtpHost(''); setFormSmtpPort('587'); setFormSmtpSecure(false); setFormSmtpUser(''); setFormSmtpPass(''); setFormPassword(''); setFormRole('user'); setFormError('');
+    setFormUsername(''); setFormEmail(''); setFormPhone(''); setFormSmtpHost(''); setFormSmtpPort('587'); setFormSmtpSecure(false); setFormSmtpUser(''); setFormSmtpPass(''); setFormPassword(''); setFormRole('user'); setFormError('');
     setShowForm(true);
   };
 
   const openEdit = (u: UserRecord) => {
     setEditUser(u);
-    setFormUsername(u.username); setFormEmail(u.email ?? ''); setFormSmtpHost(u.smtp_host ?? ''); setFormSmtpPort(String(u.smtp_port ?? 587)); setFormSmtpSecure(!!u.smtp_secure); setFormSmtpUser(u.smtp_user ?? ''); setFormSmtpPass(u.smtp_pass ?? ''); setFormPassword(''); setFormRole(u.role); setFormError('');
+    setFormUsername(u.username); setFormEmail(u.email ?? ''); setFormPhone(u.phone ?? ''); setFormSmtpHost(u.smtp_host ?? ''); setFormSmtpPort(String(u.smtp_port ?? 587)); setFormSmtpSecure(!!u.smtp_secure); setFormSmtpUser(u.smtp_user ?? ''); setFormSmtpPass(u.smtp_pass ?? ''); setFormPassword(''); setFormRole(u.role); setFormError('');
     setShowForm(true);
   };
 
@@ -67,12 +68,12 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
     setFormError(''); setFormLoading(true);
     try {
       if (editUser) {
-        const data: { username: string; email: string; smtp_host: string; smtp_port: number; smtp_secure: boolean; smtp_user: string; smtp_pass: string; password?: string; role: 'admin' | 'user' } = { username: formUsername, email: formEmail, smtp_host: formSmtpHost, smtp_port: Number(formSmtpPort || 587), smtp_secure: formSmtpSecure, smtp_user: formSmtpUser, smtp_pass: formSmtpPass, role: formRole };
+        const data: { username: string; email: string; phone: string; smtp_host: string; smtp_port: number; smtp_secure: boolean; smtp_user: string; smtp_pass: string; password?: string; role: 'admin' | 'user' } = { username: formUsername, email: formEmail, phone: formPhone, smtp_host: formSmtpHost, smtp_port: Number(formSmtpPort || 587), smtp_secure: formSmtpSecure, smtp_user: formSmtpUser, smtp_pass: formSmtpPass, role: formRole };
         if (formPassword) data.password = formPassword;
         await updateUser(editUser.id, data);
-        setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, username: formUsername, email: formEmail, smtp_host: formSmtpHost, smtp_port: Number(formSmtpPort || 587), smtp_secure: formSmtpSecure, smtp_user: formSmtpUser, smtp_pass: formSmtpPass, role: formRole } : u));
+        setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, username: formUsername, email: formEmail, phone: formPhone, smtp_host: formSmtpHost, smtp_port: Number(formSmtpPort || 587), smtp_secure: formSmtpSecure, smtp_user: formSmtpUser, smtp_pass: formSmtpPass, role: formRole } : u));
       } else {
-        const created = await createUser({ username: formUsername, email: formEmail, smtp_host: formSmtpHost, smtp_port: Number(formSmtpPort || 587), smtp_secure: formSmtpSecure, smtp_user: formSmtpUser, smtp_pass: formSmtpPass, password: formPassword, role: formRole });
+        const created = await createUser({ username: formUsername, email: formEmail, phone: formPhone, smtp_host: formSmtpHost, smtp_port: Number(formSmtpPort || 587), smtp_secure: formSmtpSecure, smtp_user: formSmtpUser, smtp_pass: formSmtpPass, password: formPassword, role: formRole });
         setUsers(prev => [...prev, { ...created, created_at: new Date().toISOString() }]);
       }
       setShowForm(false);
@@ -109,6 +110,19 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
     }
   };
 
+  const handleTestSms = async () => {
+    if (!editUser) return;
+    setTestLoading(true);
+    try {
+      await testUserSms(editUser.id);
+      alert('SMS de teste enviado com sucesso.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Erro ao enviar SMS de teste');
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   const savePerms = async () => {
     if (!permUser) return;
     setPermLoading(true);
@@ -120,7 +134,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
-      <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4"
         style={{ borderBottom: '1px solid var(--border)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
@@ -136,23 +150,25 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={openCreate}
-            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5"
+            className="flex items-center gap-2 text-sm font-medium rounded-lg px-2.5 sm:px-3 py-1.5"
             style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent-subtle)')}>
-            <span className="text-base leading-none">+</span> Novo usuário
+            <span className="text-base leading-none">+</span>
+            <span className="hidden sm:inline">Novo usuário</span>
+            <span className="sm:hidden">Novo</span>
           </button>
           <ThemeToggle />
         </div>
       </header>
 
-      <main className="flex-1 px-6 py-6 max-w-3xl w-full mx-auto">
+      <main className="flex-1 px-3 sm:px-6 py-4 sm:py-6 max-w-3xl w-full mx-auto">
         {loading ? (
           <p style={{ color: 'var(--text-muted)' }}>Carregando...</p>
         ) : (
           <div className="flex flex-col gap-2">
             {users.map(u => (
-              <div key={u.id} className="flex items-center gap-3 px-4 py-3 rounded-xl"
+              <div key={u.id} className="flex items-center flex-wrap gap-3 px-3 sm:px-4 py-3 rounded-xl"
                 style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                 {/* Avatar */}
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm"
@@ -163,13 +179,14 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{u.username}</p>
                   {u.email && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{u.email}</p>}
+                  {u.phone && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>📱 {u.phone}</p>}
                   <span className="text-xs px-1.5 py-0.5 rounded"
                     style={{ background: u.role === 'admin' ? 'rgba(7,217,99,0.1)' : 'rgba(59,130,246,0.1)',
                       color: u.role === 'admin' ? '#07d963' : '#60a5fa' }}>
                     {ROLE_LABEL[u.role]}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap ml-auto">
                   {u.role !== 'admin' && (
                     <button onClick={() => openPerms(u)}
                       className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"
@@ -205,7 +222,7 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'var(--overlay-dark)', backdropFilter: 'blur(8px)' }}
           onClick={() => setShowForm(false)}>
-          <form className="rounded-xl p-6 w-full max-w-sm flex flex-col gap-4"
+          <form className="rounded-xl p-5 sm:p-6 w-full max-w-sm flex flex-col gap-4 max-h-[92vh] overflow-y-auto"
             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
             onClick={e => e.stopPropagation()}
             onSubmit={handleFormSubmit}>
@@ -231,6 +248,17 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
                 style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                 onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
                 onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Telefone (SMS)</label>
+              <input type="tel" value={formPhone} onChange={e => setFormPhone(e.target.value)}
+                placeholder="+55 11 99999-8888"
+                className="rounded-lg px-3 py-2 text-sm outline-none"
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-focus)')}
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
+              <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Com DDD. Sem +código do país, assume Brasil (+55).</span>
             </div>
 
             <div className="rounded-lg p-3 flex flex-col gap-3" style={{ background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
@@ -298,21 +326,28 @@ const UserManagement: React.FC<Props> = ({ boards, onBack }) => {
               </p>
             )}
 
-            <div className="flex gap-2 mt-1">
+            <div className="flex flex-wrap gap-2 mt-1">
               {editUser && (
                 <button type="button" onClick={handleTestEmail} disabled={testLoading}
-                  className="flex-1 py-2 rounded-lg text-sm font-semibold"
+                  className="flex-1 min-w-[120px] py-2 rounded-lg text-sm font-semibold"
                   style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}>
-                  {testLoading ? 'Enviando...' : 'Testar envio'}
+                  {testLoading ? 'Enviando...' : 'Testar email'}
+                </button>
+              )}
+              {editUser && (
+                <button type="button" onClick={handleTestSms} disabled={testLoading}
+                  className="flex-1 min-w-[120px] py-2 rounded-lg text-sm font-semibold"
+                  style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}>
+                  {testLoading ? 'Enviando...' : 'Testar SMS'}
                 </button>
               )}
               <button type="submit" disabled={formLoading || !formUsername || !formEmail || (!editUser && !formPassword)}
-                className="flex-1 py-2 rounded-lg text-sm font-semibold"
+                className="flex-1 min-w-[120px] py-2 rounded-lg text-sm font-semibold"
                 style={{ background: 'var(--accent)', color: 'var(--text-on-accent)', opacity: formLoading ? 0.6 : 1 }}>
                 {formLoading ? 'Salvando...' : editUser ? 'Salvar' : 'Criar'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="flex-1 py-2 rounded-lg text-sm"
+                className="flex-1 min-w-[120px] py-2 rounded-lg text-sm"
                 style={{ background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
                 Cancelar
               </button>

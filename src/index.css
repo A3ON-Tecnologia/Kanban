@@ -159,9 +159,22 @@ body {
     min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 95vh !important;
   }
   .card-modal-content {
-    min-width: 860px;
+    min-width: 0 !important;
+    padding: 16px !important;
+  }
+  /* Descrição e comentários empilham no celular em vez de lado a lado */
+  .card-modal-cols {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .card-modal-cols > div {
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 }
 

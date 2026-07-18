@@ -284,10 +284,10 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
     <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <header
-        className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
+        className="sticky top-0 z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4"
         style={{ borderBottom: '1px solid var(--border)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}
       >
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
@@ -323,7 +323,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
             const visible = others.slice(0, MAX);
             const overflow = others.slice(MAX);
             return (
-              <div className="flex items-center gap-1.5 pl-2" style={{ borderLeft: '1px solid var(--border)' }}>
+              <div className="hidden lg:flex items-center gap-1.5 pl-2" style={{ borderLeft: '1px solid var(--border)' }}>
                 {visible.map(b => (
                   <button
                     key={b.id}
@@ -387,23 +387,23 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
             );
           })()}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => setAddingColumn(true)}
-            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+            className="flex items-center gap-2 text-sm font-medium rounded-lg px-2.5 sm:px-3 py-1.5 transition-colors"
             style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-subtle)'; }}
           >
             <span className="text-base leading-none font-light">+</span>
-            Nova coluna
+            <span className="hidden sm:inline">Nova coluna</span>
           </button>
           <ThemeToggle />
         </div>
       </header>
 
       {/* Board */}
-      <main className="flex-1 min-h-0 p-6 overflow-auto board-scroll">
+      <main className="flex-1 min-h-0 p-3 sm:p-6 overflow-auto board-scroll">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -415,7 +415,7 @@ const KanbanBoard: React.FC<Props> = ({ initialBoard, boards, onBack, onSelectBo
             items={board.columns.map(c => c.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex gap-5 items-start min-w-max pb-4">
+            <div className="flex gap-4 sm:gap-5 items-start min-w-max pb-4">
               {board.columns.map((col: Column, colIndex: number) => (
                 <KanbanColumn
                   key={col.id}

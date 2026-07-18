@@ -114,6 +114,7 @@ const KanbanColumn: React.FC<Props> = ({ column, index, onAddCard, onDeleteCard,
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing flex-shrink-0 flex flex-col gap-0.5 px-0.5 py-1 rounded opacity-40 hover:opacity-80 transition-opacity"
+            style={{ touchAction: 'none' }}
             title="Arrastar coluna"
           >
             <span style={{ display: 'flex', gap: 2 }}>

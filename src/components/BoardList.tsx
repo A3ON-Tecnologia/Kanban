@@ -33,7 +33,7 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-main)' }}>
       {/* Header */}
       <header
-        className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
+        className="sticky top-0 z-20 flex items-center justify-between flex-wrap gap-y-2 gap-x-2 px-3 sm:px-6 py-3 sm:py-4"
         style={{ borderBottom: '1px solid var(--border)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}
       >
         <div className="flex items-center gap-3">
@@ -53,11 +53,11 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {onManageUsers && (
             <button
               onClick={onManageUsers}
-              className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+              className="flex items-center gap-2 text-sm font-medium rounded-lg px-2.5 sm:px-3 py-1.5 transition-colors"
               style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.18)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.1)'; }}
@@ -67,13 +67,14 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
           )}
           <button
             onClick={() => setCreating(true)}
-            className="flex items-center gap-2 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+            className="flex items-center gap-2 text-sm font-medium rounded-lg px-2.5 sm:px-3 py-1.5 transition-colors"
             style={{ background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-subtle)'; }}
           >
             <span className="text-base leading-none font-light">+</span>
-            Novo quadro
+            <span className="hidden sm:inline">Novo quadro</span>
+            <span className="sm:hidden">Novo</span>
           </button>
           <ThemeToggle />
           {user && onSignOut && (
@@ -95,7 +96,7 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
       </header>
 
       {/* Content */}
-      <main className="flex-1 px-6 py-6">
+      <main className="flex-1 px-3 sm:px-6 py-4 sm:py-6">
         {/* Create board form */}
         {creating && (
           <div className="mb-6 p-4 rounded-xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--accent-glow)', maxWidth: '380px' }}>
