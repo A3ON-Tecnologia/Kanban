@@ -219,6 +219,45 @@ export async function testMyEmail(): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Erro ao enviar email de teste');
 }
 
+// ===== Logs (admin) =====
+
+export interface AccessLogRecord {
+  id: number;
+  user_id: string | null;
+  username: string | null;
+  action: string;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
+export interface CardChange { campo: string; de: string; para: string; }
+
+export interface CardLogRecord {
+  id: number;
+  card_id: string;
+  board_id: string | null;
+  board_title: string | null;
+  card_title: string | null;
+  action: 'create' | 'update' | 'delete';
+  changes: CardChange[] | null;
+  user_id: string | null;
+  username: string | null;
+  created_at: string;
+}
+
+export async function loadAccessLogs(): Promise<AccessLogRecord[]> {
+  const res = await fetch(`${API_URL}/logs/access`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Erro ao carregar log de acessos');
+  return res.json();
+}
+
+export async function loadCardLogs(): Promise<CardLogRecord[]> {
+  const res = await fetch(`${API_URL}/logs/cards`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Erro ao carregar log de cards');
+  return res.json();
+}
+
 export async function getUserBoards(userId: string): Promise<string[]> {
   const res = await fetch(`${API_URL}/users/${userId}/boards`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Erro ao carregar permissões');

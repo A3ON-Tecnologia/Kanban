@@ -7,11 +7,15 @@ const boardsRouter = require('./routes/boards');
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
 const deletedCardsRouter = require('./routes/deletedCards');
+const logsRouter = require('./routes/logs');
 const pool = require('./db');
 const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 8687;
+
+// Necessário para que req.ip reflita o IP real quando atrás de proxy/nginx.
+app.set('trust proxy', true);
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -20,6 +24,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/deleted-cards', deletedCardsRouter);
+app.use('/api/logs', logsRouter);
 app.use('/api/boards', boardsRouter);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
@@ -250,6 +255,38 @@ async function ensureUserSmtpColumns() {
   }
 }
 
+async function ensureLogTables() {
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS access_logs (
+      id          BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      user_id     VARCHAR(36)  NULL,
+      username    VARCHAR(255) NULL,
+      action      VARCHAR(30)  NOT NULL DEFAULT 'login',
+      ip          VARCHAR(64)  NULL,
+      user_agent  VARCHAR(512) NULL,
+      created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_access_created (created_at)
+    ) ENGINE=InnoDB`
+  );
+
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS card_logs (
+      id           BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      card_id      VARCHAR(36)  NOT NULL,
+      board_id     VARCHAR(36)  NULL,
+      board_title  VARCHAR(255) NULL,
+      card_title   VARCHAR(255) NULL,
+      action       VARCHAR(20)  NOT NULL,
+      changes      JSON         NULL,
+      user_id      VARCHAR(36)  NULL,
+      username     VARCHAR(255) NULL,
+      created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_cardlog_created (created_at),
+      INDEX idx_cardlog_card (card_id)
+    ) ENGINE=InnoDB`
+  );
+}
+
 async function start() {
   try {
     await ensureUserEmailColumn();
@@ -258,6 +295,7 @@ async function start() {
     await ensureCardNotifyEmailMinutesColumn();
     await ensureCardNotifyUserColumn();
     await ensureCardNotifySentAtColumn();
+    await ensureLogTables();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
       console.log(`Acesso local:  http://localhost:${PORT}`);

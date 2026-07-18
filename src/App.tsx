@@ -8,6 +8,7 @@ import BoardList from './components/BoardList'
 import LoginPage from './components/LoginPage'
 import UserManagement from './components/UserManagement'
 import AccountSettings from './components/AccountSettings'
+import LogsPage from './components/LogsPage'
 import { useAuth } from './context/AuthContext'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [showUserMgmt, setShowUserMgmt] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
+  const [showLogs, setShowLogs] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -86,6 +88,11 @@ function App() {
     return <UserManagement boards={boards} onBack={() => setShowUserMgmt(false)} />
   }
 
+  // Logs de acesso e edição de cards (admin)
+  if (showLogs) {
+    return <LogsPage onBack={() => setShowLogs(false)} />
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-main)' }}>
@@ -135,6 +142,7 @@ function App() {
       onSignOut={signOut}
       onAccount={() => setShowAccount(true)}
       onManageUsers={user.role === 'admin' ? () => setShowUserMgmt(true) : undefined}
+      onViewLogs={user.role === 'admin' ? () => setShowLogs(true) : undefined}
     />
   )
 }

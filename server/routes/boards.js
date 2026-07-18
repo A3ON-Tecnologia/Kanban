@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
+const { logCardChanges } = require('../cardLog');
 
 router.use(authMiddleware);
 
@@ -150,7 +151,9 @@ router.put('/:id', async (req, res) => {
     // O quadro é regravado por completo abaixo. Guarda o estado de notificação
     // antes do DELETE para não reenviar e-mails já disparados a cada save.
     const [prevCards] = await conn.execute(
-      `SELECT c.id, c.due_date, c.notify_email_minutes, c.notify_email_sent_at
+      `SELECT c.id, c.title, c.description, c.color, c.priority, c.due_date,
+              c.column_id, c.notify_email_minutes, c.notify_email_sent_at,
+              col.title AS col_title
          FROM cards c
          JOIN columns_tbl col ON col.id = c.column_id
         WHERE col.board_id = ?`,
@@ -234,6 +237,14 @@ router.put('/:id', async (req, res) => {
           );
         }
       }
+    }
+
+    // Registra alterações de cards (create/update/delete/move) comparando o
+    // estado anterior com o payload. Falha de log não deve derrubar o save.
+    try {
+      await logCardChanges(conn, { board: { ...board, id }, prevCards, user: req.user });
+    } catch (logErr) {
+      console.error('card_log diff:', logErr.message);
     }
 
     await conn.commit();

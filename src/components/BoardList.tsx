@@ -14,10 +14,11 @@ interface Props {
   user?: AuthUser;
   onSignOut?: () => void;
   onManageUsers?: () => void;
+  onViewLogs?: () => void;
   onAccount?: () => void;
 }
 
-const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename, user, onSignOut, onManageUsers, onAccount }) => {
+const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename, user, onSignOut, onManageUsers, onViewLogs, onAccount }) => {
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -64,6 +65,17 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.1)'; }}
             >
               Usuários
+            </button>
+          )}
+          {onViewLogs && (
+            <button
+              onClick={onViewLogs}
+              className="flex items-center gap-2 text-sm font-medium rounded-lg px-2.5 sm:px-3 py-1.5 transition-colors"
+              style={{ background: 'rgba(139,92,246,0.1)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.2)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.1)'; }}
+            >
+              Logs
             </button>
           )}
           <button
