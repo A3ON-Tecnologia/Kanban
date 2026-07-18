@@ -7,6 +7,7 @@ import KanbanBoard from './components/KanbanBoard'
 import BoardList from './components/BoardList'
 import LoginPage from './components/LoginPage'
 import UserManagement from './components/UserManagement'
+import AccountSettings from './components/AccountSettings'
 import { useAuth } from './context/AuthContext'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showUserMgmt, setShowUserMgmt] = useState(false)
+  const [showAccount, setShowAccount] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -74,6 +76,11 @@ function App() {
   // Não autenticado → login
   if (!user) return <LoginPage />
 
+  // Minha conta (qualquer usuário)
+  if (showAccount) {
+    return <AccountSettings username={user.username} onBack={() => setShowAccount(false)} />
+  }
+
   // Gerenciamento de usuários (admin)
   if (showUserMgmt) {
     return <UserManagement boards={boards} onBack={() => setShowUserMgmt(false)} />
@@ -126,6 +133,7 @@ function App() {
       onRename={handleRename}
       user={user}
       onSignOut={signOut}
+      onAccount={() => setShowAccount(true)}
       onManageUsers={user.role === 'admin' ? () => setShowUserMgmt(true) : undefined}
     />
   )

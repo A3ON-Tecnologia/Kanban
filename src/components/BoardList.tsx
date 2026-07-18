@@ -14,9 +14,10 @@ interface Props {
   user?: AuthUser;
   onSignOut?: () => void;
   onManageUsers?: () => void;
+  onAccount?: () => void;
 }
 
-const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename, user, onSignOut, onManageUsers }) => {
+const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRename, user, onSignOut, onManageUsers, onAccount }) => {
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -77,9 +78,22 @@ const BoardList: React.FC<Props> = ({ boards, onSelect, onCreate, onDelete, onRe
             <span className="sm:hidden">Novo</span>
           </button>
           <ThemeToggle />
+          {onAccount && (
+            <button
+              onClick={onAccount}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+              title="Minha conta"
+            >
+              <span aria-hidden>⚙</span>
+              <span className="hidden sm:inline">Minha conta</span>
+            </button>
+          )}
           {user && onSignOut && (
             <div className="flex items-center gap-2 pl-2" style={{ borderLeft: '1px solid var(--border)' }}>
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{user.username}</span>
+              <span className="text-xs hidden sm:inline" style={{ color: 'var(--text-muted)' }}>{user.username}</span>
               <button
                 onClick={onSignOut}
                 className="text-xs px-2.5 py-1.5 rounded-lg transition-colors"

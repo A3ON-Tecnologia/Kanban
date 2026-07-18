@@ -197,6 +197,42 @@ export async function testUserSms(id: string): Promise<void> {
   if (!res.ok) throw new Error(json.error || 'Erro ao enviar SMS de teste');
 }
 
+// ===== Self-service: o próprio usuário edita seus dados =====
+
+export async function getMyProfile(): Promise<UserRecord> {
+  const res = await fetch(`${API_URL}/users/me/profile`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Erro ao carregar perfil');
+  return res.json();
+}
+
+export async function updateMyProfile(data: { email: string; phone?: string | null; smtp_host?: string | null; smtp_port?: number | null; smtp_secure?: boolean | null; smtp_user?: string | null; smtp_pass?: string | null }): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/profile`, {
+    method: 'PUT', headers: authHeaders(), body: JSON.stringify(data),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || 'Erro ao salvar perfil');
+}
+
+export async function changeMyPassword(currentPassword: string, newPassword: string): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/password`, {
+    method: 'PUT', headers: authHeaders(), body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || 'Erro ao trocar senha');
+}
+
+export async function testMyEmail(): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/test-email`, { method: 'POST', headers: authHeaders() });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || 'Erro ao enviar email de teste');
+}
+
+export async function testMySms(): Promise<void> {
+  const res = await fetch(`${API_URL}/users/me/test-sms`, { method: 'POST', headers: authHeaders() });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || 'Erro ao enviar SMS de teste');
+}
+
 export async function getUserBoards(userId: string): Promise<string[]> {
   const res = await fetch(`${API_URL}/users/${userId}/boards`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Erro ao carregar permissões');
