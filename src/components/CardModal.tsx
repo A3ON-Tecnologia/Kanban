@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 
 import type { Card, Checklist, ChecklistItem, Priority, Board } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ConfirmModal from './ConfirmModal';
+import RichTextEditor from './RichTextEditor';
 
 interface Props {
   card: Card;
@@ -44,7 +45,6 @@ const COLORS = [
 ];
 
 const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, onSendToBoard, currentUserId }) => {
-  const descRef = useRef<HTMLTextAreaElement | null>(null);
   const [draft, setDraft] = useState<Card>({ ...card, notifyByEmail: card.notifyByEmail ?? false, notifyEmailMinutes: card.notifyEmailMinutes ?? null, notifyEmailUserId: card.notifyEmailUserId ?? currentUserId ?? null, checklist: card.checklist.map(cl => ({ ...cl, items: [...cl.items] })), comments: [...card.comments] });
   const [descMaximized, setDescMaximized] = useState(false);
   const [newCheckItems, setNewCheckItems] = useState<Record<string, string>>({});
@@ -186,50 +186,13 @@ const CardModal: React.FC<Props> = ({ card, onClose, onSave, onDelete, boards, o
                     {descMaximized ? 'Minimizar' : 'Maximizar'}
                   </button>
                 </div>
-                <div className="flex gap-2 mb-2">
-                  <button type="button" title="Negrito" className="px-2 py-1 rounded text-sm font-bold border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-all"
-                    onClick={() => {
-                      const textarea = descRef.current;
-                      if (!textarea) return;
-                      const { selectionStart, selectionEnd } = textarea;
-                      const start = draft.description.slice(0, selectionStart);
-                      const end = draft.description.slice(selectionEnd);
-                      const selected = draft.description.slice(selectionStart, selectionEnd);
-                      update({ description: `${start}**${selected || 'Texto em negrito'}**${end}` });
-                      setTimeout(() => {
-                        textarea.focus();
-                        textarea.setSelectionRange(start.length + 2, start.length + 2 + (selected ? selected.length : 14));
-                      }, 0);
-                    }}
-                  >B</button>
-                  <button type="button" title="Lista ordenada" className="px-2 py-1 rounded text-sm border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-all"
-                    onClick={() => {
-                      const lines = draft.description.split('\n');
-                      update({ description: lines.map((l, i) => l ? `${i + 1}. ${l}` : '').join('\n') });
-                    }}
-                  >1.</button>
-                  <button type="button" title="Lista desordenada" className="px-2 py-1 rounded text-sm border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-all"
-                    onClick={() => {
-                      const lines = draft.description.split('\n');
-                      update({ description: lines.map(l => l ? `- ${l}` : '').join('\n') });
-                    }}
-                  >•</button>
-                </div>
-                <textarea
-                  ref={descRef}
+                <RichTextEditor
                   value={draft.description}
-                  onChange={e => update({ description: e.target.value })}
-                  className="w-full rounded-lg p-3 text-sm outline-none"
-                  style={{
-                    background: 'var(--bg-input)',
-                    border: '1px solid var(--border)',
-                    minHeight: descMaximized ? 800 : 420,
-                    maxHeight: descMaximized ? 1200 : 600,
-                    resize: descMaximized ? 'vertical' : 'none',
-                    color: 'var(--text-primary)',
-                    transition: 'max-height 0.2s',
-                  }}
-                  rows={descMaximized ? 40 : 20}
+                  onChange={html => update({ description: html })}
+                  resetKey={card.id}
+                  minHeight={descMaximized ? 800 : 420}
+                  maxHeight={descMaximized ? 1200 : 600}
+                  resize={descMaximized}
                   placeholder="Adicione uma descrição detalhada..."
                 />
               </div>

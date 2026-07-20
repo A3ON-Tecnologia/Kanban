@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Card as CardType } from '../types';
 import ConfirmModal from './ConfirmModal';
+import { toHtml } from '../richtext';
 
 interface Props {
   card: CardType;
@@ -130,9 +131,11 @@ const KanbanCard: React.FC<Props> = ({ card, columnId, accentColor = '#07d963', 
 
         {/* Description */}
         {card.description && (
-          <p className="text-xs leading-relaxed line-clamp-3" style={{ color: 'var(--text-muted)' }}>
-            {card.description}
-          </p>
+          <div
+            className="rich-html text-xs leading-relaxed line-clamp-3"
+            style={{ color: 'var(--text-muted)' }}
+            dangerouslySetInnerHTML={{ __html: toHtml(card.description) }}
+          />
         )}
 
         {/* Due date */}
